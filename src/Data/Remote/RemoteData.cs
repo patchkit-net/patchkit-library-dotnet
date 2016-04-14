@@ -56,6 +56,36 @@ namespace PatchKit.Data.Remote
         }
 
         /// <summary>
+        /// Returns info about specified version.
+        /// </summary>
+        public RemoteVersionInfo GetVersionInfo(int version, CancellationToken cancelToken)
+        {
+            string methodUrl = string.Format("1/apps/{0}/versions/{1}", _connectionSettings.SecretKey, version);
+
+            string summary = _downloader.DownloadString(
+                new Uri(_connectionSettings.ServiceURL, methodUrl),
+                progress => { }, cancelToken);
+
+            var data = ParseAndVerifyServerResponse<RemoteVersionInfo>(summary);
+            return data.Data;
+        }
+
+        /// <summary>
+        /// Returns info about specified version.
+        /// </summary>
+        public RemoteAllVersionsInfo GetAllVersionsInfo(CancellationToken cancelToken)
+        {
+            string methodUrl = string.Format("1/apps/{0}/versions", _connectionSettings.SecretKey);
+
+            string summary = _downloader.DownloadString(
+                new Uri(_connectionSettings.ServiceURL, methodUrl),
+                progress => { }, cancelToken);
+
+            var data = ParseAndVerifyServerResponse<RemoteAllVersionsInfo>(summary);
+            return data.Data;
+        }
+
+        /// <summary>
         /// Returns summary of content for specified version.
         /// </summary>
         public RemoteContentSummary GetContentSummary(int version, CancellationToken cancelToken)

@@ -3,7 +3,7 @@
 namespace PatchKit
 {
     /// <summary>
-    /// Connection settings for patcher.
+    /// Settings for patcher.
     /// </summary>
     public struct PatcherSettings
     {

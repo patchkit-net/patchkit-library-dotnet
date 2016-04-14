@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using log4net;
 using PatchKit.Data.Local;
 using PatchKit.Data.Remote;
 using PatchKit.Downloader;
@@ -16,6 +17,8 @@ namespace PatchKit
     /// </summary>
     public sealed class Patcher
     {
+        private static readonly ILog Log = LogManager.GetLogger(typeof (Patcher));
+
         /// <summary>
         /// Patcher status.
         /// </summary>
@@ -25,19 +28,19 @@ namespace PatchKit
 
         private readonly RemoteData _remoteDatabase;
 
-        internal IDownloader _downloader;
+        internal IDownloader Downloader;
 
         private CancellationTokenSource _cancellationTokenSource;
 
         /// <summary>
         /// Temporary directory for patches.
         /// </summary>
-        public string _temporaryPatchesPath;
+        public string TemporaryPatchesPath;
 
         /// <summary>
         /// Temporary directory for downloads.
         /// </summary>
-        public string _temporaryDownloadsPath;
+        public string TemporaryDownloadsPath;
 
         /// <summary>
         /// Notifies about patching patcher progress.
@@ -57,43 +60,159 @@ namespace PatchKit
         public Patcher(string localPath, PatcherSettings patcherSettings)
             : this(localPath, patcherSettings, new Downloader.Downloader())
         {
-
         }
 
         internal Patcher(string localPath, PatcherSettings patcherSettings, IDownloader downloader)
         {
-            IsPatching = false;
-            _localApplication = new LocalApplication(localPath, HashUtilities.ComputeStringHash(patcherSettings.SecretKey));
-            _downloader = downloader;
-            _remoteDatabase = new RemoteData(patcherSettings, _downloader);
+            Log.Debug("[*new*]");
+            Log.Debug(string.Format("Local path: {0}", localPath));
+            Log.Debug(string.Format("Patcher settings:" +
+                                    "- Service URL: {0}" +
+                                    "- Secret Key: {1}", patcherSettings.ServiceURL, patcherSettings.SecretKey));
+            Log.Debug(string.Format("Downloader: {0}", downloader.GetType()));
 
+            IsPatching = false;
+            Downloader = downloader;
+            _localApplication = new LocalApplication(localPath, HashUtilities.ComputeStringHash(patcherSettings.SecretKey));
+            _remoteDatabase = new RemoteData(patcherSettings, Downloader);
+
+            Log.Debug("[-new-]");
         }
 
-        public void CancelAsync()
+        public int GetCurrentVersion()
         {
+            Log.Debug("[-*GetCurrentVersion*-]");
+            return _remoteDatabase.GetCurrentVersion(new CancellationTokenSource().Token);
+        }
+
+        public void GetCurrentVersionAsync(Action<int, bool> callback)
+        {
+            Log.Debug("[*GetCurrentVersionAsync*]");
+            Log.Debug(string.Format("Callback: {0}", callback));
+
+            new Thread(() =>
+            {
+                Log.Debug("[*GetCurrentVersionAsync:thread*]");
+                try
+                {
+                    var version = GetCurrentVersion();
+                    callback(version, true);
+                }
+                catch (Exception exception)
+                {
+                    Log.Error("[GetCurrentVersionAsync:thread] : exception", exception);
+                    callback(0, false);
+                }
+                Log.Debug("[-GetCurrentVersionAsync:thread-]");
+            })
+            { IsBackground = true }.Start();
+
+            Log.Debug("[-GetCurrentVersionAsync-]");
+        }
+
+        public RemoteVersionInfo GetVersionInfo(int version)
+        {
+            Log.Debug("[-*GetVersionInfo*-]");
+            Log.Debug(string.Format("Version: {0}", version));
+
+            return _remoteDatabase.GetVersionInfo(version, new CancellationTokenSource().Token);
+        }
+
+        public void GetVersionInfoAsync(int version, Action<RemoteVersionInfo, bool> callback)
+        {
+            Log.Debug("[*GetVersionInfoAsync*]");
+            Log.Debug(string.Format("Version: {0}", version));
+            Log.Debug(string.Format("Callback: {0}", callback));
+
+            new Thread(() =>
+            {
+                Log.Debug("[*GetVersionInfoAsync:thread*]");
+                try
+                {
+                    var info = GetVersionInfo(version);
+                    callback(info, true);
+                }
+                catch(Exception exception)
+                {
+                    Log.Error("[GetVersionInfoAsync:thread] : exception", exception);
+                    callback(default(RemoteVersionInfo), false);
+                }
+                Log.Debug("[-GetVersionInfoAsync:thread-]");
+            }) { IsBackground = true }.Start();
+
+            Log.Debug("[-GetVersionInfoAsync-]");
+        }
+
+        public RemoteVersionInfo[] GetAllVersionsInfo()
+        {
+            Log.Debug("[-*GetAllVersionsInfo*-]");
+
+            return _remoteDatabase.GetAllVersionsInfo(new CancellationTokenSource().Token).Versions;
+        }
+
+        public void GetAllVersionsInfoAsync(Action<RemoteVersionInfo[], bool> callback)
+        {
+            Log.Debug("[*GetAllVersionsInfoAsync*]");
+
+            Log.Debug(string.Format("Callback: {0}", callback));
+
+            new Thread(() =>
+            {
+                Log.Debug("[*GetAllVersionsInfo:thread*]");
+
+                try
+                {
+                    var info = GetAllVersionsInfo();
+                    callback(info, true);
+                }
+                catch (Exception exception)
+                {
+                    Log.Error("[GetAllVersionsInfo:thread] : exception", exception);
+                    callback(new RemoteVersionInfo[] {}, false);
+                }
+                Log.Debug("[-GetAllVersionsInfo:thread-]");
+            })
+            { IsBackground = true }.Start();
+
+            Log.Debug("[-GetAllVersionsInfoAsync-]");
+        }
+
+        public void CancelPatchAsync()
+        {
+            Log.Debug("[*CancelPatchAsync*]");
+
             if (!IsPatching)
             {
+                Log.Error("[-CancelPatchAsync-] : error - called while patcher was working");
                 throw new InvalidOperationException("You cannot cancel patcher if it's already working.");
             }
 
             _cancellationTokenSource.Cancel();
+
+            Log.Debug("[-CancelPatchAsync-]");
         }
 
         public void PatchAsync()
         {
+            Log.Debug("[*PatchAsync*]");
             new Thread(Patch) { IsBackground = true }.Start();
+            Log.Debug("[-PatchAsync-]");
         }
 
         public void Patch()
         {
+            Log.Debug("[*Patch*]");
+
             if (IsPatching)
             {
+                Log.Error("[-Patch-] : error - called while patcher was working");
                 throw new InvalidOperationException("You cannot start patcher if it's already patching.");
             }
 
             _cancellationTokenSource = new CancellationTokenSource();
 
             IsPatching = true;
+
             CreateTempDirectories();
 
             try
@@ -104,21 +223,28 @@ namespace PatchKit
                     Type = PatcherProgressType.Started
                 });
 
-                /*_downloader.DownloadTorrent(new Uri(@"http://cdimage.debian.org/debian-cd/8.3.0/i386/bt-cd/debian-8.3.0-i386-netinst.iso.torrent"),
-                    _localApplication.TemporaryDownloadsPath, OnDownloaderProgress, _cancellationTokenSource.Token);*/
+                Log.Debug("[Patch] : getting current version");
 
                 int currentlyAvailableVersion = _remoteDatabase.GetCurrentVersion(_cancellationTokenSource.Token);
                 //For testing (TODO: place it under DEBUG or DEVELOPMENT #if)
                 //_localDatabase.Cache.GetCommonVersion().HasValue ? _remoteDatabase.GetCurrentVersion(_cancellationTokenSource.Token) : 1;
 
+                Log.Debug("[Patch] : choosing strategy of patching");
+
                 if (!ApplicationFilesConsistent())
                 {
+                    Log.Debug("[Patch] : trying to patch with content");
+
                     TryPatchWithContent(currentlyAvailableVersion);
                 }
                 else
                 {
+                    Log.Debug("[Patch] : trying to patch with diff");
+
                     TryPatchWithDiff(currentlyAvailableVersion);
                 }
+
+                Log.Debug("[Patch] : finished patching");
 
                 IsPatching = false;
 
@@ -135,6 +261,8 @@ namespace PatchKit
 
                 if (ex.InnerExceptions.All(exception => exception is OperationCanceledException))
                 {
+                    Log.Debug("[Patch] : cancelled");
+
                     OnPatcherProgress(new PatcherProgress
                     {
                         Progress = 1.0f,
@@ -143,6 +271,8 @@ namespace PatchKit
                 }
                 else
                 {
+                    Log.Error("[Patch] : exception", ex);
+
                     OnPatcherProgress(new PatcherProgress
                     {
                         Progress = 1.0f,
@@ -155,6 +285,8 @@ namespace PatchKit
             }
             catch (OperationCanceledException)
             {
+                Log.Debug("[Patch] : cancelled");
+
                 IsPatching = false;
 
                 OnPatcherProgress(new PatcherProgress()
@@ -167,6 +299,8 @@ namespace PatchKit
             }
             catch (Exception ex)
             {
+                Log.Error("[Patch] : exception", ex);
+
                 IsPatching = false;
 
                 OnPatcherProgress(new PatcherProgress
@@ -183,35 +317,60 @@ namespace PatchKit
                 IsPatching = false;
                 RemoveTempDirectories();
             }
+
+            Log.Debug("[-Patch-]");
         }
 
         private void CreateTempDirectories()
         {
-            _temporaryPatchesPath = TempDirectory.Create("patches_");
-            _temporaryDownloadsPath = TempDirectory.Create("downloads_");
+            Log.Debug("[*CreateTempDirectories*]");
 
-            if (_downloader.TempDirectory == null)
+            TemporaryPatchesPath = TempDirectory.Create("patches_");
+            TemporaryDownloadsPath = TempDirectory.Create("downloads_");
+
+            Log.Debug(string.Format("[CreateTempDirectories] : TemporaryPatchesPath - {0}", TemporaryPatchesPath));
+            Log.Debug(string.Format("[CreateTempDirectories] : TemporaryDownloadsPath - {0}", TemporaryDownloadsPath));
+
+            if (Downloader.TempDirectory == null)
             {
-                _downloader.TempDirectory = _temporaryDownloadsPath;
+                Log.Debug("[CreateTempDirectories] : downloader temp directory empty - setting it to TemporaryDownloadsPath");
+
+                Downloader.TempDirectory = TemporaryDownloadsPath;
             }
+
+            Log.Debug("[-CreateTempDirectories-]");
         }
 
         private void RemoveTempDirectories()
         {
-            Directory.Delete(_temporaryPatchesPath, true);
-            Directory.Delete(_temporaryDownloadsPath, true);
+            Log.Debug("[*RemoveTempDirectories*]");
+
+            Log.Debug(string.Format("[RemoveTempDirectories] : TemporaryPatchesPath - {0}", TemporaryPatchesPath));
+            Log.Debug(string.Format("[RemoveTempDirectories] : TemporaryDownloadsPath - {0}", TemporaryDownloadsPath));
+
+            Directory.Delete(TemporaryPatchesPath, true);
+            Directory.Delete(TemporaryDownloadsPath, true);
+
+            Log.Debug("[-RemoveTempDirectories-]");
         }
 
         private void TryPatchWithContent(int version)
         {
+            Log.Debug("[*TryPatchWithContent*]");
+            Log.Debug(string.Format("Version: {0}", version));
+
             OnPatcherProgress(new PatcherProgress
             {
                 Type = PatcherProgressType.Checking,
                 Progress = 0.0f
             });
 
+            Log.Debug("[TryPatchWithContent] : checking whether version is currently patched");
+
             if (CheckVersion(version, true) == false)
             {
+                Log.Debug("[TryPatchWithContent] : patching with content");
+
                 _localApplication.Clear(_cancellationTokenSource.Token);
 
                 OnPatcherProgress(new PatcherProgress
@@ -220,8 +379,14 @@ namespace PatchKit
                     Progress = 0.0f
                 });
 
+                Log.Debug("[TryPatchWithContent] : downloading content");
+
                 string contentPackage = _remoteDatabase.DownloadContent(version, OnDownloaderProgress,
                     _cancellationTokenSource.Token);
+
+                Log.Debug(string.Format("[TryPatchWithContent] : content downloaded to {0}", contentPackage));
+
+                Log.Debug("[TryPatchWithContent] : unzipping content");
 
                 ZipUtilities.FileUnzipStartHandler onContentFileUnzipStart = (filePath, fileName, progress) =>
                 {
@@ -250,7 +415,11 @@ namespace PatchKit
                 ZipUtilities.Unzip(contentPackage, _localApplication.Path,
                     onContentFileUnzipStart,
                     onContentFileUnzipEnd, _cancellationTokenSource.Token);
+
+                Log.Debug("[TryPatchWithContent] : finished");
             }
+
+            Log.Debug("[-TryPatchWithContent-]");
         }
 
         /// <summary>
@@ -260,6 +429,10 @@ namespace PatchKit
         /// <returns></returns>
         private void TryPatchWithDiff(int targetVersion)
         {
+            Log.Debug("[*TryPatchWithDiff*]");
+            Log.Debug(string.Format("Target version: {0}", targetVersion));
+
+
             OnPatcherProgress(new PatcherProgress
             {
                 Type = PatcherProgressType.Checking,
@@ -271,10 +444,15 @@ namespace PatchKit
             int localVersion = _localApplication.Cache.GetCommonVersion().Value;
             float progressPerVersion = 1.0f / (targetVersion - localVersion);
 
+            Log.Debug(string.Format("[TryPatchWithDiff] : Local version - {0}", localVersion));
 
             while (!_localApplication.IsUpToDate(targetVersion))
             {
                 int nextVersion = localVersion + 1;
+
+                Log.Debug(string.Format("[TryPatchWithContent] : patching from {0} to {1}", localVersion, localVersion));
+
+                Log.Debug("[TryPatchWithContent] : getting diff summary");
 
                 RemoteDiffSummary diffSummary =
                     _remoteDatabase.GetDiffSummary(nextVersion, _cancellationTokenSource.Token);
@@ -291,15 +469,23 @@ namespace PatchKit
                     Progress = totalProgress
                 });
 
+                Log.Debug("[TryPatchWithContent] : downloading diff package");
+
                 string diffPackage = _remoteDatabase.DownloadDiff(nextVersion, OnDownloaderProgress,
                     _cancellationTokenSource.Token);
 
-                while (Directory.Exists(_temporaryPatchesPath))
+                Log.Debug(string.Format("[TryPatchWithContent] : downloaded diff package to {0}", diffPackage));
+
+                Log.Debug("[TryPatchWithContent] : deleting temporary patches location");
+
+                while (Directory.Exists(TemporaryPatchesPath))
                 {
-                    Directory.Delete(_temporaryPatchesPath, true);
+                    Directory.Delete(TemporaryPatchesPath, true);
 
                     Thread.Sleep(1000);
                 }
+
+                Log.Debug("[TryPatchWithContent] : unzipping diff package");
 
                 ZipUtilities.FileUnzipStartHandler onDiffFileUnzipStart = (filePath, fileName, progress) =>
                 {
@@ -348,8 +534,10 @@ namespace PatchKit
                     });
                 };
 
-                ZipUtilities.Unzip(diffPackage, _temporaryPatchesPath, onDiffFileUnzipStart, onDiffFileUnzipEnd,
+                ZipUtilities.Unzip(diffPackage, TemporaryPatchesPath, onDiffFileUnzipStart, onDiffFileUnzipEnd,
                     _cancellationTokenSource.Token);
+
+                Log.Debug("[TryPatchWithContent] : patching with diff files");
 
                 foreach (var diffFile in diffSummary.RemovedFiles)
                 {
@@ -363,72 +551,131 @@ namespace PatchKit
 
                 localVersion = nextVersion;
                 totalProgress += progressPerVersion;
+
+                Log.Debug("[TryPatchWithContent] : finished patching");
             }
+
+            Log.Debug("[-TryPatchWithDiff-]");
         }
 
         private bool ApplicationFilesConsistent()
         {
+            Log.Debug("[*ApplicationFilesConsistent*]");
+
+            Log.Debug("[ApplicationFilesConsistent] : getting common version of files");
+
             int? commonVersion = _localApplication.Cache.GetCommonVersion();
             if (!commonVersion.HasValue)
             {
+                Log.Debug("[-ApplicationFilesConsistent-] : false - there's no common version");
+
                 return false;
             }
 
+            Log.Debug("[ApplicationFilesConsistent] : getting content summary");
+
             RemoteContentSummary contentSummary =
                 _remoteDatabase.GetContentSummary(commonVersion.Value, _cancellationTokenSource.Token);
+
             if (!_localApplication.CheckFilesConsistency(contentSummary, _cancellationTokenSource.Token))
             {
+                Log.Debug("[-ApplicationFilesConsistent-] : false - files aren't consisent");
+
                 return false;
             }
+
+            Log.Debug("[-ApplicationFilesConsistent-] : true");
 
             return true;
         }
 
         private bool CheckFile(string file, int version)
         {
+            Log.Debug("[*CheckFile*]");
+            Log.Debug(string.Format("File: {0}", file));
+            Log.Debug(string.Format("Version: {0}", version));
+
             var localVersion = _localApplication.Cache.GetFileVersion(file);
+
             if (localVersion != null && localVersion == version)
             {
                 if (File.Exists(_localApplication.GetFilePath(file)))
                 {
+                    Log.Debug("[-CheckFile-] : true");
+
                     return true;
                 }
+
+                Log.Debug("[-CheckFile-] : false - file doesn't exist");
+
+                return false;
             }
+
+            Log.Debug("[-CheckFile-] : false - file doesn't exist or is in different version");
 
             return false;
         }
 
         private bool CheckFileWithHash(string file, int version, string hash)
         {
+            Log.Debug("[*CheckFileWithHash*]");
+            Log.Debug(string.Format("File: {0}", file));
+            Log.Debug(string.Format("Version: {0}", version));
+            Log.Debug(string.Format("Hash: {0}", hash));
+
             if (CheckFile(file, version))
             {
                 string fileHash = HashUtilities.ComputeFileHash(_localApplication.GetFilePath(file));
 
                 if (hash == fileHash)
                 {
+                    Log.Debug("[-CheckFileWithHash-] : true");
+
                     return true;
                 }
+
+                Log.Debug("[-CheckFileWithHash-] : false - different hashes");
+
+                return false;
             }
+
+            Log.Debug("[-CheckFileWithHash-] : false - basic check failed");
+
             return false;
         }
 
         private bool CheckVersion(int version, bool checkHash)
         {
+            Log.Debug("[*CheckVersion*]");
+            Log.Debug(string.Format("Version: {0}", version));
+            Log.Debug(string.Format("Check hash: {0}", checkHash));
+
             if (version <= _remoteDatabase.GetCurrentVersion(_cancellationTokenSource.Token) && _localApplication.Cache.GetCommonVersion() == version)
             {
+                Log.Debug("[CheckVersion] : getting content summary");
+
                 var contentSummary = _remoteDatabase.GetContentSummary(version, _cancellationTokenSource.Token);
+
+                Log.Debug("[CheckVersion] : checking files");
 
                 foreach (var file in contentSummary.Files)
                 {
                     _cancellationTokenSource.Token.ThrowIfCancellationRequested();
                     if (checkHash ? !CheckFileWithHash(file.Path, version, file.Hash) : !CheckFile(file.Path, version))
                     {
+                        Log.Debug(string.Format("[-CheckVersion-] : false - incorrect file of path {0}", file.Path));
+
                         return false;
                     }
                 }
 
+                Log.Debug("[-CheckVersion-] : true");
+
                 return true;
             }
+
+            Log.Debug("[-CheckVersion-] : false - incorrect version");
+
             return false;
         }
 
