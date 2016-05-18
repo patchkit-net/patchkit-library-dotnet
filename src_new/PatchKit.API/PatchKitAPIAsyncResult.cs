@@ -15,13 +15,17 @@ namespace PatchKit.API
 
         private readonly AsyncCallback _callback;
 
+        private readonly PatchKitAPICancellationTokenSource _cancellationTokenSource = new PatchKitAPICancellationTokenSource();
+
         private ManualResetEvent _manualResetEvent;
 
-        public T Result { get; private set; }
+        internal T Result { get; private set; }
 
-        public Exception Exception { get; private set; }
+        internal Exception Exception { get; private set; }
 
         public bool IsCompleted { get; private set; }
+
+        public bool HasBeenCancelled { get; private set; }
 
         public WaitHandle AsyncWaitHandle
         {
@@ -52,7 +56,7 @@ namespace PatchKit.API
             get { return false; }
         }
 
-		internal PatchKitAPIAsyncResult(Func<T> workToBeDone, AsyncCallback callback, object state)
+		internal PatchKitAPIAsyncResult(Func<PatchKitAPICancellationToken, T> workToBeDone, AsyncCallback callback, object state)
 		{
             _callback = callback;
             _state = state;
@@ -61,13 +65,22 @@ namespace PatchKit.API
 		    QueueWorkOnThreadPool(workToBeDone);
 		}
 
-        private void QueueWorkOnThreadPool(Func<T> workToBeDone)
+        public void Cancel()
+        {
+            _cancellationTokenSource.Cancel();
+        }
+
+        private void QueueWorkOnThreadPool(Func<PatchKitAPICancellationToken, T> workToBeDone)
         {
             ThreadPool.QueueUserWorkItem(state =>
             {
                 try
                 {
-                    Result = workToBeDone();
+                    Result = workToBeDone(_cancellationTokenSource);
+                }
+                catch (OperationCanceledException)
+                {
+                    HasBeenCancelled = true;
                 }
                 catch (Exception exception)
                 {

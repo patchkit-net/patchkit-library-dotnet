@@ -76,11 +76,11 @@ namespace PatchKit.Patcher
                 _cancellationTokenSource.Token.ThrowIfCancellationRequested();
                 Thread.Sleep(1);
             }
-            if (result.Error != null)
+            if (result.Exception != null)
             {
-                throw result.Error;
+                throw result.Exception;
             }
-            return result.Value.ID;
+            return result.Result.ID;
         }
 
         public void GetCurrentVersionAsync(Action<int, bool> callback)
@@ -108,11 +108,11 @@ namespace PatchKit.Patcher
                 _cancellationTokenSource.Token.ThrowIfCancellationRequested();
                 Thread.Sleep(1);
             }
-            if (result.Error != null)
+            if (result.Exception != null)
             {
-                throw result.Error;
+                throw result.Exception;
             }
-            return result.Value;
+            return result.Result;
         }
 
         public void GetVersionInfoAsync(int version, Action<AppVersion, bool> callback)
@@ -140,11 +140,11 @@ namespace PatchKit.Patcher
                 _cancellationTokenSource.Token.ThrowIfCancellationRequested();
                 Thread.Sleep(1);
             }
-            if (result.Error != null)
+            if (result.Exception != null)
             {
-                throw result.Error;
+                throw result.Exception;
             }
-            return result.Value;
+            return result.Result;
         }
 
         public void GetAllVersionsInfoAsync(Action<AppVersion[], bool> callback)

@@ -88,17 +88,13 @@ namespace PatchKit.API.Tests
         [Test]
         public virtual void GetAppVersionsListTest()
         {
-            var result = API.GetAppVersionsList();
+            var asyncResult = API.GetAppVersionsList();
 
-            while (!result.IsCompleted)
-            {
-                Thread.Sleep(1);
-            }
+            var result = API.EndAPIRequest<AppVersion[]>(asyncResult);
 
-            Assert.IsNull(result.Exception);
-            Assert.IsNotNull(result.Result);
+            Assert.IsNotNull(result);
 
-            CollectionAssert.AreEquivalent(result.Result, Data.AppVersions);
+            CollectionAssert.AreEquivalent(result, Data.AppVersions);
         }
 
         [Test]

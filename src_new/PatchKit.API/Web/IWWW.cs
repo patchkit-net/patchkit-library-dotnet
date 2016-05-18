@@ -2,6 +2,6 @@
 {
     public interface IWWW
     {
-        void DownloadString(WWWRequest<string> request);
+        WWWResponse<string> DownloadString(string url, PatchKitAPICancellationToken cancellationToken);
     }
 }

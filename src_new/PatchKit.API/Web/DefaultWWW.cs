@@ -19,15 +19,18 @@ namespace PatchKit.API.Web
         {
 	    }
 
-	    public void DownloadString (WWWRequest<string> request)
+	    public WWWResponse<string> DownloadString (string url, PatchKitAPICancellationToken cancellationToken)
 		{
-			var httpRequest = WebRequest.Create (request.Url) as HttpWebRequest;
+			var httpRequest = WebRequest.Create (url) as HttpWebRequest;
 
 			if (httpRequest == null) 
 			{
-				request.CompleteWithError (new FormatException (string.Format("Invaild URL {0}", request.Url)));
-				return;
+				throw new FormatException (string.Format("Provided url {0} is not vaild HTTP url.", url)));
 			}
+
+	        string responseData = string.Empty;
+	        int responseStatusCode = 0;
+	        Exception responseException = null;
 
 		    var asyncResult = httpRequest.BeginGetResponse(ar => 
 		    {
@@ -41,29 +44,34 @@ namespace PatchKit.API.Web
 		            // ReSharper disable once AssignNullToNotNullAttribute
 		            using (var sr = new StreamReader(response.GetResponseStream(), responseEncoding))
 		            {
-		                string data = sr.ReadToEnd();
+                        responseData = sr.ReadToEnd();
 
-		                request.Complete(data, (int)response.StatusCode);
+                        responseStatusCode = (int) response.StatusCode;
 		            }
 		        }
 		        catch(Exception exception)
 		        {
-		            request.CompleteWithError(exception);
+		            responseException = exception;
 		        }
 		    }, null);
 			
+            asyncResult.AsyncWaitHandle.WaitOne()
+            
             Stopwatch watch = new Stopwatch();
             watch.Start();
+            
 
 			while (!asyncResult.IsCompleted) 
 			{
-				if (request.IsCancelled || watch.ElapsedMilliseconds > _timeout) 
+				if (cancellationToken.IsCancellationRequested || watch.ElapsedMilliseconds > _timeout) 
 				{
 					httpRequest.Abort ();
 					break;
 				}
 				System.Threading.Thread.Sleep (1);
 			}
+
+            return new 
 		}
 	}
 }

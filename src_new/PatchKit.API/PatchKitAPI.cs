@@ -103,104 +103,113 @@ namespace PatchKit.API
             return APIRequest<AppDiffUrl[]>(methodUrl);
         }
 
+        public T EndAPIRequest<T>(IAsyncResult asyncResult)
+        {
+            var patchKitAPIAsyncResult = asyncResult as PatchKitAPIAsyncResult<T>;
+
+            if (patchKitAPIAsyncResult == null)
+            {
+                throw new ArgumentException("asyncResult");
+            }
+
+            patchKitAPIAsyncResult.AsyncWaitHandle.WaitOne();
+
+            if (patchKitAPIAsyncResult.Exception != null)
+            {
+                throw patchKitAPIAsyncResult.Exception;
+            }
+
+            return patchKitAPIAsyncResult.Result;
+        }
+
         private PatchKitAPIAsyncResult<T> APIRequest<T>(string url)
 		{
-			var result = new PatchKitAPIAsyncResult<T> ();
-
-		    ThreadPool.QueueUserWorkItem(state => DownloadAndVerifyServerResponse(url, result));
+			var result = new PatchKitAPIAsyncResult<T> (cancellationToken => DownloadAndVerifyServerResponse<T>(url, cancellationToken), null, null);
 
 			return result;
 		}
 
-        private void DownloadAndVerifyServerResponse<T>(string requestUrl, PatchKitAPIAsyncResult<T> asyncResult)
+        private T DownloadAndVerifyServerResponse<T>(string requestUrl, PatchKitAPICancellationToken cancellationToken)
         {
-            var requests = new WWWRequest<string>[_settings.MirrorAPIUrls.Length + 1];
+            var requests = new PatchKitAPIAsyncResult<WWWResponse<string>>[_settings.MirrorAPIUrls.Length + 1];
 
-            WWWRequest<string> correctRequest = null;
+            PatchKitAPIAsyncResult<WWWResponse<string>> correctResult = null;
 
-            int i = 0;
-
-            Stopwatch watch = new Stopwatch();
-            watch.Start();
-
-            while (correctRequest == null && !asyncResult.IsCancelled)
+            try
             {
-                correctRequest = FindCorrectRequest(requests);
+                int i = 0;
 
-                if (requests.All(r => r != null && (r.IsCompleted || r.Error != null)) && correctRequest == null)
+                Stopwatch watch = new Stopwatch();
+                watch.Start();
+
+                while (correctResult == null)
                 {
-                    asyncResult.Complete(default(T), requests[0].Error ?? new PatchKitAPIException("API request failure.", requests[0].StatusCode));
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                    break;
-                }
+                    correctResult = FindCorrectRequest(requests);
 
-                if (i < _settings.MirrorAPIUrls.Length + 1)
-                {
-                    if (requests.All(r => r == null || r.IsCompleted || r.Error != null) || watch.ElapsedMilliseconds >= _settings.DelayBetweenMirrorRequests)
+                    if (requests.All(r => r != null && r.IsCompleted) && correctResult == null)
                     {
-                        string url = i == 0 ? _settings.APIUrl : _settings.MirrorAPIUrls[i - 1];
-
-                        requests[i] = new WWWRequest<string>(requestUrl.EndsWith("/") ? url + requestUrl : url + "/" + requestUrl);
-
-                        _www.DownloadString(requests[i]);
-
-                        watch.Reset();
-                        watch.Start();
-
-                        i++;
+                        throw requests[0].Exception ?? new PatchKitAPIException("Unexcepted API response.", requests[0].Result.StatusCode);
                     }
+
+                    if (i < _settings.MirrorAPIUrls.Length + 1)
+                    {
+                        if (requests.All(r => r == null || r.IsCompleted) || watch.ElapsedMilliseconds >= _settings.DelayBetweenMirrorRequests)
+                        {
+                            string url = i == 0 ? _settings.APIUrl : _settings.MirrorAPIUrls[i - 1];
+
+                            string fullUrl = requestUrl.EndsWith("/") ? url + requestUrl : url + "/" + requestUrl;
+
+                            requests[i] = new PatchKitAPIAsyncResult<WWWResponse<string>>(cancellationToken2 => _www.DownloadString(fullUrl, cancellationToken2), null, null);
+
+                            watch.Reset();
+                            watch.Start();
+
+                            i++;
+                        }
+                    }
+
+                    Thread.Sleep(1);
                 }
 
-                Thread.Sleep(1);
+                if (correctResult.Result.StatusCode == 200)
+                {
+                    return JsonConvert.DeserializeObject<T>(correctResult.Result.Value);
+                }
+
+                throw new PatchKitAPIException("Unexcepted API response.", correctResult.Result.StatusCode);
             }
-
-            foreach (var r in requests)
+            finally
             {
-                if (r != null && r != correctRequest)
+                foreach (var r in requests)
                 {
-                    r.IsCancelled = true;
-                }
-            }
-
-            if (correctRequest != null)
-            {
-                if (correctRequest.StatusCode == 200)
-                {
-                    try
+                    if (r != null && r != correctResult)
                     {
-                        T value = JsonConvert.DeserializeObject<T>(correctRequest.Value);
-
-                        asyncResult.Complete(value, null);
+                        r.Cancel();
+                        r.AsyncWaitHandle.WaitOne();
                     }
-                    catch (Exception exception)
-                    {
-                        asyncResult.Complete(default(T), exception);
-                    }
-                }
-                else
-                {
-                    asyncResult.Complete(default(T), new PatchKitAPIException("API error.", correctRequest.StatusCode));
                 }
             }
         }
 
-        private static WWWRequest<string> FindCorrectRequest(IList<WWWRequest<string>> requests)
+        private static PatchKitAPIAsyncResult<WWWResponse<string>> FindCorrectRequest(IList<PatchKitAPIAsyncResult<WWWResponse<string>>> requests)
         {
             for (int i = 0; i < requests.Count; i++)
             {
                 var r = requests[i];
-                if (r != null && r.IsCompleted && r.Error == null)
+                if (r != null && r.IsCompleted && !r.HasBeenCancelled && r.Exception == null)
                 {
                     if (i == 0)
                     {
-                        if (r.StatusCode == 200 || r.StatusCode == 400 || r.StatusCode == 401 || r.StatusCode == 404)
+                        if (r.Result.StatusCode == 200 || r.Result.StatusCode == 400 || r.Result.StatusCode == 401 || r.Result.StatusCode == 404)
                         {
                             return r;
                         }
                     }
                     else
                     {
-                        if (r.StatusCode == 200)
+                        if (r.Result.StatusCode == 200)
                         {
                             return r;
                         }
