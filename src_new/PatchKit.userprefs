@@ -1,0 +1,14 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="PatchKit.API.Tests/Test.cs">
+    <Files>
+      <File FileName="PatchKit.API/PatchKitAPI.cs" Line="24" Column="53" />
+      <File FileName="PatchKit.API/Data/AppDiffSummary.cs" Line="10" Column="25" />
+      <File FileName="PatchKit.API.Tests/Test.cs" Line="10" Column="26" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
