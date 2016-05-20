@@ -7,7 +7,7 @@ using PatchKit.API.Web;
 
 namespace PatchKit.API.Tests
 {
-    [TestFixture]
+    /*[TestFixture]
     public class PatchKitAPIUnitTests : PatchKitAPITests
     {
         private class WWWProvider : IWWWProvider
@@ -145,7 +145,7 @@ namespace PatchKit.API.Tests
         }
 
         // TODO: Diff summary unit test
-        /*[TestCaseSource("GetAppDiffSummaryTestData")]
+        [TestCaseSource("GetAppDiffSummaryTestData")]
         public override void GetAppDiffSummaryTest(int version, AppDiffSummary appDiffSummary)
         {
             string url = string.Format("1/apps/{0}/versions/{1}/diff_summary", Data.Settings.SecretKey, version);
@@ -158,7 +158,7 @@ namespace PatchKit.API.Tests
             base.GetAppDiffSummaryTest(version, appDiffSummary);
 
             WWWRequestArg(WWW.Received(1), Data.Settings.APIUrl, url);
-        }*/
+        }
 
         [TestCaseSource("GetAppDiffTorrentUrlTestData")]
         public override void GetAppDiffTorrentUrlTest(int version, AppDiffTorrentUrl appDiffTorrentUrl)
@@ -189,5 +189,5 @@ namespace PatchKit.API.Tests
 
             WWWRequestArg(WWW.Received(1), Data.Settings.APIUrl, url);
         }
-    }
+    }*/
 }

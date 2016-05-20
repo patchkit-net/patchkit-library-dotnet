@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using NUnit.Framework;
 using PatchKit.API.Data;
 using PatchKit.API.Web;
@@ -88,11 +87,9 @@ namespace PatchKit.API.Tests
         [Test]
         public virtual void GetAppVersionsListTest()
         {
-            var asyncResult = API.GetAppVersionsList();
+            var asyncResult = API.BeginGetAppVersionsList();
 
-            var result = API.EndAPIRequest<AppVersion[]>(asyncResult);
-
-            Assert.IsNotNull(result);
+            var result = API.EndGetAppVersionsList(asyncResult);
 
             CollectionAssert.AreEquivalent(result, Data.AppVersions);
         }
@@ -100,92 +97,64 @@ namespace PatchKit.API.Tests
         [Test]
         public virtual void GetAppLatestVersionTest()
         {
-            var result = API.GetAppLatestVersion();
+            var asyncResult = API.BeginGetAppLatestVersion();
 
-            while (!result.IsCompleted)
-            {
-                Thread.Sleep(1);
-            }
+            var result = API.EndGetAppLatestVersion(asyncResult);
 
-            Assert.IsNull(result.Exception);
-            Assert.AreEqual(result.Result, Data.AppLatestVersion);
+            Assert.AreEqual(result, Data.AppLatestVersion);
         }
 
         [Test]
         public virtual void GetAppLatestVersionIDTest()
         {
-            var result = API.GetAppLatestVersionID();
+            var asyncResult = API.BeginGetAppLatestVersionID();
 
-            while (!result.IsCompleted)
-            {
-                Thread.Sleep(1);
-            }
+            var result = API.EndGetAppLatestVersionID(asyncResult);
 
-            Assert.IsNull(result.Exception);
-            Assert.AreEqual(result.Result, Data.AppLatestVersionID);
+            Assert.AreEqual(result, Data.AppLatestVersionID);
         }
 
         [TestCaseSource("GetAppVersionTestData")]
         public virtual void GetAppVersionTest(int version, AppVersion appVersion)
         {
-            var result = API.GetAppVersion(version);
+            var asyncResult = API.BeginGetAppVersion(version);
 
-            while (!result.IsCompleted)
-            {
-                Thread.Sleep(1);
-            }
+            var result = API.EndGetAppVersion(asyncResult);
 
-            Assert.IsNull(result.Exception);
-
-            Assert.AreEqual(result.Result, appVersion);
+            Assert.AreEqual(result, appVersion);
         }
 
         [TestCaseSource("GetAppContentSummaryTestData")]
         public virtual void GetAppContentSummaryTest(int version, AppContentSummary appContentSummary)
         {
-            var result = API.GetAppContentSummary(version);
+            var asyncResult = API.BeginGetAppContentSummary(version);
 
-            while (!result.IsCompleted)
-            {
-                Thread.Sleep(1);
-            }
+            var result = API.EndGetAppContentSummary(asyncResult);
 
-            Assert.IsNull(result.Exception);
-
-            CollectionAssert.AreEquivalent(result.Result.Files, appContentSummary.Files);
-            Assert.AreEqual(result.Result.CompressionMethod, appContentSummary.CompressionMethod);
-            Assert.AreEqual(result.Result.EncryptionMethod, appContentSummary.EncryptionMethod);
-            Assert.AreEqual(result.Result.Size, appContentSummary.Size);
+            CollectionAssert.AreEquivalent(result.Files, appContentSummary.Files);
+            Assert.AreEqual(result.CompressionMethod, appContentSummary.CompressionMethod);
+            Assert.AreEqual(result.EncryptionMethod, appContentSummary.EncryptionMethod);
+            Assert.AreEqual(result.Size, appContentSummary.Size);
         }
 
         [TestCaseSource("GetAppContentTorrentUrlTestData")]
         public virtual void GetAppContentTorrentUrlTest(int version, AppContentTorrentUrl appContentTorrentUrl)
         {
-            var result = API.GetAppContentTorrentUrl(version);
+            var asyncResult = API.BeginGetAppContentTorrentUrl(version);
 
-            while (!result.IsCompleted)
-            {
-                Thread.Sleep(1);
-            }
+            var result = API.EndGetAppContentTorrentUrl(asyncResult);
 
-            Assert.IsNull(result.Exception);
-
-            Assert.AreEqual(result.Result, appContentTorrentUrl);
+            Assert.AreEqual(result, appContentTorrentUrl);
         }
 
         [TestCaseSource("GetAppContentUrlsTestData")]
         public virtual void GetAppContentUrlsTest(int version, AppContentUrl[] appContentUrls)
         {
-            var result = API.GetAppContentUrls(version);
+            var asyncResult = API.BeginGetAppContentUrls(version);
 
-            while (!result.IsCompleted)
-            {
-                Thread.Sleep(1);
-            }
+            var result = API.EndGetAppContentUrls(asyncResult);
 
-            Assert.IsNull(result.Exception);
-
-            CollectionAssert.AreEquivalent(result.Result, appContentUrls);
+            CollectionAssert.AreEquivalent(result, appContentUrls);
         }
 
         //TODO: Diff summary test
@@ -212,31 +181,21 @@ namespace PatchKit.API.Tests
         [TestCaseSource("GetAppDiffTorrentUrlTestData")]
         public virtual void GetAppDiffTorrentUrlTest(int version, AppDiffTorrentUrl appDiffTorrentUrl)
         {
-            var result = API.GetAppDiffTorrentUrl(version);
+            var asyncResult = API.BeginGetAppDiffTorrentUrl(version);
 
-            while (!result.IsCompleted)
-            {
-                Thread.Sleep(1);
-            }
+            var result = API.EndGetAppDiffTorrentUrl(asyncResult);
 
-            Assert.IsNull(result.Exception);
-
-            Assert.AreEqual(result.Result, appDiffTorrentUrl);
+            Assert.AreEqual(result, appDiffTorrentUrl);
         }
 
         [TestCaseSource("GetAppDiffUrlsTestData")]
         public virtual void GetAppDiffUrlsTest(int version, AppDiffUrl[] appDiffUrls)
         {
-            var result = API.GetAppDiffUrls(version);
+            var asyncResult = API.BeginGetAppDiffUrls(version);
 
-            while (!result.IsCompleted)
-            {
-                Thread.Sleep(1);
-            }
+            var result = API.EndGetAppDiffUrls(asyncResult);
 
-            Assert.IsNull(result.Exception);
-
-            CollectionAssert.AreEquivalent(result.Result, appDiffUrls);
+            CollectionAssert.AreEquivalent(result, appDiffUrls);
         }
     }
 }

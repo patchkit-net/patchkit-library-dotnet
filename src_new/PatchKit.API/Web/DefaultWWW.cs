@@ -1,8 +1,10 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading;
+using JetBrains.Annotations;
+using PatchKit.API.Async;
 
 namespace PatchKit.API.Web
 {
@@ -19,60 +21,87 @@ namespace PatchKit.API.Web
         {
 	    }
 
-	    public WWWResponse<string> DownloadString (string url, PatchKitAPICancellationToken cancellationToken)
-		{
-			var httpRequest = WebRequest.Create (url) as HttpWebRequest;
+	    public ICancellableAsyncResult BeginDownloadString(string url, CancellableAsyncCallback asyncCallback, object state)
+	    {
+	        return new AsyncResult<WWWResponse<string>>(cancellationToken => DownloadString(url, cancellationToken), asyncCallback, state);
+	    }
 
-			if (httpRequest == null) 
-			{
-				throw new FormatException (string.Format("Provided url {0} is not vaild HTTP url.", url)));
-			}
+	    public WWWResponse<string> EndDownloadString([NotNull] ICancellableAsyncResult asyncResult)
+	    {
+	        var result = asyncResult as AsyncResult<WWWResponse<string>>;
 
-	        string responseData = string.Empty;
-	        int responseStatusCode = 0;
-	        Exception responseException = null;
+            if (result == null)
+            {
+                throw new ArgumentException("asyncResult");
+            }
 
-		    var asyncResult = httpRequest.BeginGetResponse(ar => 
-		    {
-		        try
-		        {
-		            var response = (HttpWebResponse)httpRequest.EndGetResponse(ar);
+	        return result.FetchResultsFromAsyncOperation();
+	    }
 
-		            // ReSharper disable once AssignNullToNotNullAttribute
-		            var responseEncoding = Encoding.GetEncoding(response.CharacterSet);
+	    private WWWResponse<string> DownloadString(string url, AsyncCancellationToken cancellationToken)
+	    {
+            var httpRequest = WebRequest.Create(url) as HttpWebRequest;
 
-		            // ReSharper disable once AssignNullToNotNullAttribute
-		            using (var sr = new StreamReader(response.GetResponseStream(), responseEncoding))
-		            {
+            if (httpRequest == null)
+            {
+                throw new FormatException(string.Format("Provided url {0} is not vaild HTTP url.", url));
+            }
+
+            string responseData = string.Empty;
+            int responseStatusCode = 0;
+            Exception responseException = null;
+
+	        ManualResetEvent manualResetEvent = new ManualResetEvent(false);
+
+            var asyncResult = httpRequest.BeginGetResponse(ar =>
+            {
+                try
+                {
+                    var response = (HttpWebResponse) httpRequest.EndGetResponse(ar);
+
+                    // ReSharper disable once AssignNullToNotNullAttribute
+                    var responseEncoding = Encoding.GetEncoding(response.CharacterSet);
+
+                    // ReSharper disable once AssignNullToNotNullAttribute
+                    using (var sr = new StreamReader(response.GetResponseStream(), responseEncoding))
+                    {
                         responseData = sr.ReadToEnd();
 
                         responseStatusCode = (int) response.StatusCode;
-		            }
-		        }
-		        catch(Exception exception)
-		        {
-		            responseException = exception;
-		        }
-		    }, null);
-			
-            asyncResult.AsyncWaitHandle.WaitOne()
-            
-            Stopwatch watch = new Stopwatch();
-            watch.Start();
-            
+                    }
+                }
+                catch (Exception exception)
+                {
+                    responseException = exception;
+                }
+                finally
+                {
+                    manualResetEvent.Set();
+                }
+            }, null);
 
-			while (!asyncResult.IsCompleted) 
-			{
-				if (cancellationToken.IsCancellationRequested || watch.ElapsedMilliseconds > _timeout) 
-				{
-					httpRequest.Abort ();
-					break;
-				}
-				System.Threading.Thread.Sleep (1);
-			}
+            Timer timoutTimer = new Timer(state =>
+            {
+                httpRequest.Abort();
+            });
+	        timoutTimer.Change(_timeout, Timeout.Infinite);
 
-            return new 
-		}
+            cancellationToken.Register(() =>
+            {
+                httpRequest.Abort();
+            });
+
+            manualResetEvent.WaitOne();
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+	        if (responseException != null)
+	        {
+	            throw responseException;
+	        }
+
+            return new WWWResponse<string>(responseData, responseStatusCode);
+	    }
 	}
 }
 

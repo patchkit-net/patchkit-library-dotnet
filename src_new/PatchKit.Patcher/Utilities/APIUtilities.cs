@@ -1,11 +1,12 @@
 ﻿using System.Threading;
 using PatchKit.API;
+using PatchKit.API.Async;
 
 namespace PatchKit.Patcher.Utilities
 {
     internal static class APIUtilities
     {
-        public static T Wait<T>(this PatchKitAPIAsyncResult<T> @this)
+        public static T Wait<T>(this AsyncResult<T> @this)
         {
             while (!@this.IsCompleted)
             {
@@ -20,7 +21,7 @@ namespace PatchKit.Patcher.Utilities
             return @this.Result;
         }
 
-        public static T Wait<T>(this PatchKitAPIAsyncResult<T> @this, CancellationToken cancellationToken)
+        public static T Wait<T>(this AsyncResult<T> @this, CancellationToken cancellationToken)
         {
             while (!@this.IsCompleted)
             {

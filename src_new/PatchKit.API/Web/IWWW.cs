@@ -1,7 +1,11 @@
-﻿namespace PatchKit.API.Web
+﻿using PatchKit.API.Async;
+
+namespace PatchKit.API.Web
 {
     public interface IWWW
     {
-        WWWResponse<string> DownloadString(string url, PatchKitAPICancellationToken cancellationToken);
+        ICancellableAsyncResult BeginDownloadString(string url, CancellableAsyncCallback asyncCallback, object state);
+
+        WWWResponse<string> EndDownloadString(ICancellableAsyncResult asyncResult);
     }
 }

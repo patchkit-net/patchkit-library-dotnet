@@ -1,31 +1,32 @@
 ﻿using System;
 using System.Threading;
+using JetBrains.Annotations;
 
-namespace PatchKit.API
+namespace PatchKit.API.Async
 {
     /// <summary>
-    /// Asynchronus API result.
+    /// Asynchronus operation result.
     /// </summary>
-    /// <typeparam name="T">The type of API data.</typeparam>
-    public class PatchKitAPIAsyncResult<T> : IAsyncResult
+    /// <typeparam name="T">Type of data returned by operation.</typeparam>
+    public class AsyncResult<T> : ICancellableAsyncResult
     {
         private readonly object _locker = new object();
 
         private readonly object _state;
 
-        private readonly AsyncCallback _callback;
-
-        private readonly PatchKitAPICancellationTokenSource _cancellationTokenSource = new PatchKitAPICancellationTokenSource();
+        private readonly CancellableAsyncCallback _callback;
 
         private ManualResetEvent _manualResetEvent;
 
-        internal T Result { get; private set; }
+        public T Result { get; private set; }
 
-        internal Exception Exception { get; private set; }
+        public Exception Exception { get; private set; }
 
         public bool IsCompleted { get; private set; }
 
         public bool HasBeenCancelled { get; private set; }
+
+        public readonly AsyncCancellationTokenSource CancellationTokenSource = new AsyncCancellationTokenSource();
 
         public WaitHandle AsyncWaitHandle
         {
@@ -56,27 +57,50 @@ namespace PatchKit.API
             get { return false; }
         }
 
-		internal PatchKitAPIAsyncResult(Func<PatchKitAPICancellationToken, T> workToBeDone, AsyncCallback callback, object state)
-		{
+        private AsyncResult(CancellableAsyncCallback callback, object state)
+        {
             _callback = callback;
             _state = state;
             IsCompleted = false;
+        }
 
-		    QueueWorkOnThreadPool(workToBeDone);
-		}
+        public AsyncResult([NotNull] Func<T> work, AsyncCallback callback, object state) : this(ar => callback(ar), state)
+        {
+            if (work == null)
+            {
+                throw new ArgumentNullException("work");
+            }
+
+            QueueWorkOnThreadPool(work);
+        }
+
+        public AsyncResult([NotNull] Func<AsyncCancellationToken, T> work, CancellableAsyncCallback callback, object state) : this(callback, state)
+        {
+            if (work == null)
+            {
+                throw new ArgumentNullException("work");
+            }
+
+            QueueWorkOnThreadPool(() => work(CancellationTokenSource.Token));
+        }
 
         public void Cancel()
         {
-            _cancellationTokenSource.Cancel();
+            if (IsCompleted)
+            {
+                throw new InvalidOperationException("You cannot cancel already completed operation.");
+            }
+            
+            CancellationTokenSource.Cancel();
         }
 
-        private void QueueWorkOnThreadPool(Func<PatchKitAPICancellationToken, T> workToBeDone)
+        private void QueueWorkOnThreadPool(Func<T> work)
         {
             ThreadPool.QueueUserWorkItem(state =>
             {
                 try
                 {
-                    Result = workToBeDone(_cancellationTokenSource);
+                    Result = work();
                 }
                 catch (OperationCanceledException)
                 {
@@ -89,6 +113,7 @@ namespace PatchKit.API
                 finally
                 {
                     IsCompleted = true;
+
                     lock (_locker)
                     {
                         if (_manualResetEvent != null)
@@ -103,6 +128,17 @@ namespace PatchKit.API
                     }
                 }
             });
+        }
+    }
+
+    public class AsyncResult : AsyncResult<object>
+    {
+        public AsyncResult(Func<object> work, AsyncCallback callback, object state) : base(work, callback, state)
+        {
+        }
+
+        public AsyncResult(Func<AsyncCancellationToken, object> work, CancellableAsyncCallback callback, object state) : base(work, callback, state)
+        {
         }
     }
 }
