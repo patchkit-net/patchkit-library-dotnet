@@ -191,6 +191,8 @@ namespace PatchKit.API
 
             ICancellableAsyncResult mainRequest = null;
 
+			object mainResponseLock = new object ();
+
             WWWResponse<string>? mainResponse = null;
 
             Exception mainException = null;
@@ -210,7 +212,10 @@ namespace PatchKit.API
                             {
                                 if (!ar.HasBeenCancelled)
                                 {
-                                    mainResponse = _www.EndDownloadString(ar);
+									lock(mainResponseLock)
+									{
+	                                    mainResponse = _www.EndDownloadString(ar);
+									}
                                 }
                             }
                             catch (Exception exception)
@@ -245,9 +250,14 @@ namespace PatchKit.API
                         }
                     }
 
+					cancellationToken.ThrowIfCancellationRequested();
+
                     lock (mirrorRequests)
                     {
-                        correctResponse = FindCorrectResponse(mainResponse, mirrorRequests.Values);
+						lock(mainResponseLock)
+						{
+                        	correctResponse = FindCorrectResponse(mainResponse, mirrorRequests.Values);
+						}
                     }
 
                     if (correctResponse != null)
@@ -264,10 +274,25 @@ namespace PatchKit.API
 
                         mirrorRequests.Add(_www.BeginDownloadString(GetUrl(mirrorUrl, methodUrl), ar =>
                         {
-                            lock (mirrorRequests)
-                            {
-                                mirrorRequests[ar] = _www.EndDownloadString(ar);
-                            }
+							try
+							{
+	                            lock (mirrorRequests)
+	                            {
+	                                mirrorRequests[ar] = _www.EndDownloadString(ar);
+	                            }
+							}
+							finally
+							{
+								lock (requestsCountLock)
+								{
+									requestsCount--;
+									
+									if (requestsCount <= 0)
+									{
+										Monitor.PulseAll(requestsCountLock);
+									}
+								}
+							}
                         }, null), null);
                     }
                 }
@@ -278,81 +303,52 @@ namespace PatchKit.API
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
+						lock (mirrorRequests)
+						{
+							lock(mainResponseLock)
+							{
+								correctResponse = FindCorrectResponse(mainResponse, mirrorRequests.Values);
+							}
+						}
+
                         Monitor.Wait(requestsCountLock, 10);
                     }
                 }
 
-                while (correctResponse == null)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
+				lock (mirrorRequests)
+				{
+					lock(mainResponseLock)
+					{
+						correctResponse = FindCorrectResponse(mainResponse, mirrorRequests.Values);
+					}
+				}
 
-                    lock (mirrorRequests)
-                    {
-                        correctResponse = FindCorrectResponse(mirrorRequests, mainRequest);
+				if(correctResponse == null)
+				{
+					if(mainException != null)
+					{
+						throw mainException;
+					}
 
-                        if (i >= _settings.MirrorAPIUrls.Length + 1 && mirrorRequests.All(r => r.Key.IsCompleted) && correctResponse == null)
-                        {
-                            // ReSharper disable once PossibleInvalidOperationException
-                            // ReSharper disable once PossibleNullReferenceException
-                            throw mainException ?? new PatchKitAPIException("Unexcepted API response.", mirrorRequests[mainRequest].Value.StatusCode);
-                        }
-                    }
+					if(mainResponse != null)
+					{
+						throw new PatchKitAPIException("Unexcepted API response." + mainResponse.Value.StatusCode, mainResponse.Value.StatusCode);
+					}
+				}
+				else
+				{
+					if (correctResponse.Value.StatusCode == 200)
+					{
+						return JsonConvert.DeserializeObject<T>(correctResponse.Value.Value);
+					}
+					else
+					{
+						throw new PatchKitAPIException("Unexcepted API response." + mainResponse.Value.StatusCode, correctResponse.Value.StatusCode);
+					}
+				}
 
-                    
-
-                    if (i < _settings.MirrorAPIUrls.Length + 1)
-                    {
-                        if (mirrorRequests.All(r => r.Key.IsCompleted) || watch.ElapsedMilliseconds >= _settings.DelayBetweenMirrorRequests)
-                        {
-                            string url = i == 0 ? _settings.APIUrl : _settings.MirrorAPIUrls[i - 1];
-
-                            string fullUrl = methodUrl.EndsWith("/") ? url + methodUrl : url + "/" + methodUrl;
-
-                            var asyncResult = _www.BeginDownloadString(fullUrl, ar =>
-                            {
-                                if (!ar.HasBeenCancelled)
-                                {
-                                    try
-                                    {
-                                        lock (mirrorRequests)
-                                        {
-                                            mirrorRequests[ar] = _www.EndDownloadString(ar);
-                                        }
-                                    }
-                                    catch (Exception exception)
-                                    {
-                                        // ReSharper disable once AccessToModifiedClosure
-                                        if (ar == mainRequest)
-                                        {
-                                            mainException = exception;
-                                        }
-                                    }
-                                }
-                            }, null);
-
-                            if (i == 0)
-                            {
-                                mainRequest = asyncResult;
-                            }
-
-                            mirrorRequests.Add(asyncResult, null);
-
-                            watch.Reset();
-                            watch.Start();
-
-                            i++;
-                        }
-                    }
-
-                    Thread.Sleep(1);
-                }
-
-                if (correctResponse.Value.StatusCode == 200)
-                {
-                    return JsonConvert.DeserializeObject<T>(correctResponse.Value.Value);
-                }
-
-                throw new PatchKitAPIException("Unexcepted API response.", correctResponse.Value.StatusCode);
+				// This exception should not be thrown. TODO: Test to check it. 
+				throw new Exception("Unable to get response from servers.");
             }
             finally
             {

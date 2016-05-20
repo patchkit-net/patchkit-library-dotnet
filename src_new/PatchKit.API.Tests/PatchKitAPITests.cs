@@ -21,7 +21,7 @@ namespace PatchKit.API.Tests
             _wwwProvider = wwwProvider;
         }
 
-        public static IEnumerable<object> GetAppVersionTestData
+        public IEnumerable<object> GetAppVersionTestData
         {
             get
             {
@@ -29,7 +29,7 @@ namespace PatchKit.API.Tests
             }
         }
 
-        public static IEnumerable<object> GetAppContentSummaryTestData
+        public IEnumerable<object> GetAppContentSummaryTestData
         {
             get
             {
@@ -37,7 +37,7 @@ namespace PatchKit.API.Tests
             }
         }
 
-        public static IEnumerable<object> GetAppContentTorrentUrlTestData
+        public IEnumerable<object> GetAppContentTorrentUrlTestData
         {
             get
             {
@@ -45,7 +45,7 @@ namespace PatchKit.API.Tests
             }
         }
 
-        public static IEnumerable<object> GetAppContentUrlsTestData
+        public IEnumerable<object> GetAppContentUrlsTestData
         {
             get
             {
@@ -53,7 +53,7 @@ namespace PatchKit.API.Tests
             }
         }
 
-        public static IEnumerable<object> GetAppDiffSummaryTestData
+        public IEnumerable<object> GetAppDiffSummaryTestData
         {
             get
             {
@@ -61,7 +61,7 @@ namespace PatchKit.API.Tests
             }
         }
 
-        public static IEnumerable<object> GetAppDiffTorrentUrlTestData
+        public IEnumerable<object> GetAppDiffTorrentUrlTestData
         {
             get
             {
@@ -69,7 +69,7 @@ namespace PatchKit.API.Tests
             }
         }
 
-        public static IEnumerable<object> GetAppDiffUrlsTestData
+        public IEnumerable<object> GetAppDiffUrlsTestData
         {
             get
             {

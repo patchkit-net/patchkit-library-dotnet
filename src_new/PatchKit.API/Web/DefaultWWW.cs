@@ -53,7 +53,7 @@ namespace PatchKit.API.Web
 
 	        ManualResetEvent manualResetEvent = new ManualResetEvent(false);
 
-            var asyncResult = httpRequest.BeginGetResponse(ar =>
+            httpRequest.BeginGetResponse(ar =>
             {
                 try
                 {
