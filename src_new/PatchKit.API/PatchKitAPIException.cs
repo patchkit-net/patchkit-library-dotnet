@@ -7,11 +7,14 @@ namespace PatchKit.API
     /// </summary>
     public class PatchKitAPIException : Exception
     {
-        public readonly int Status;
+        /// <summary>
+        /// API status code.
+        /// </summary>
+        public readonly int StatusCode;
 
-        internal PatchKitAPIException(string message, int status) : base(message)
+        internal PatchKitAPIException(string message, int statusCode) : base(message)
         {
-            Status = status;
+            StatusCode = statusCode;
         }
     }
 }

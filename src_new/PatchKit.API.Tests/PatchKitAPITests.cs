@@ -87,7 +87,7 @@ namespace PatchKit.API.Tests
         [Test]
         public virtual void GetAppVersionsListTest()
         {
-            var asyncResult = API.BeginGetAppVersionsList();
+            var asyncResult = API.BeginGetAppVersionsList(Data.SecretKey);
 
             var result = API.EndGetAppVersionsList(asyncResult);
 
@@ -97,7 +97,7 @@ namespace PatchKit.API.Tests
         [Test]
         public virtual void GetAppLatestVersionTest()
         {
-            var asyncResult = API.BeginGetAppLatestVersion();
+            var asyncResult = API.BeginGetAppLatestVersion(Data.SecretKey);
 
             var result = API.EndGetAppLatestVersion(asyncResult);
 
@@ -105,19 +105,19 @@ namespace PatchKit.API.Tests
         }
 
         [Test]
-        public virtual void GetAppLatestVersionIDTest()
+        public virtual void GetAppLatestVersionIdTest()
         {
-            var asyncResult = API.BeginGetAppLatestVersionID();
+            var asyncResult = API.BeginGetAppLatestVersionId(Data.SecretKey);
 
-            var result = API.EndGetAppLatestVersionID(asyncResult);
+            var result = API.EndGetAppLatestVersionId(asyncResult);
 
-            Assert.AreEqual(result, Data.AppLatestVersionID);
+            Assert.AreEqual(result, Data.AppLatestVersionId);
         }
 
         [TestCaseSource("GetAppVersionTestData")]
         public virtual void GetAppVersionTest(int version, AppVersion appVersion)
         {
-            var asyncResult = API.BeginGetAppVersion(version);
+            var asyncResult = API.BeginGetAppVersion(Data.SecretKey, version);
 
             var result = API.EndGetAppVersion(asyncResult);
 
@@ -127,7 +127,7 @@ namespace PatchKit.API.Tests
         [TestCaseSource("GetAppContentSummaryTestData")]
         public virtual void GetAppContentSummaryTest(int version, AppContentSummary appContentSummary)
         {
-            var asyncResult = API.BeginGetAppContentSummary(version);
+            var asyncResult = API.BeginGetAppContentSummary(Data.SecretKey, version);
 
             var result = API.EndGetAppContentSummary(asyncResult);
 
@@ -140,7 +140,7 @@ namespace PatchKit.API.Tests
         [TestCaseSource("GetAppContentTorrentUrlTestData")]
         public virtual void GetAppContentTorrentUrlTest(int version, AppContentTorrentUrl appContentTorrentUrl)
         {
-            var asyncResult = API.BeginGetAppContentTorrentUrl(version);
+            var asyncResult = API.BeginGetAppContentTorrentUrl(Data.SecretKey, version);
 
             var result = API.EndGetAppContentTorrentUrl(asyncResult);
 
@@ -150,7 +150,7 @@ namespace PatchKit.API.Tests
         [TestCaseSource("GetAppContentUrlsTestData")]
         public virtual void GetAppContentUrlsTest(int version, AppContentUrl[] appContentUrls)
         {
-            var asyncResult = API.BeginGetAppContentUrls(version);
+            var asyncResult = API.BeginGetAppContentUrls(Data.SecretKey, version);
 
             var result = API.EndGetAppContentUrls(asyncResult);
 
@@ -181,7 +181,7 @@ namespace PatchKit.API.Tests
         [TestCaseSource("GetAppDiffTorrentUrlTestData")]
         public virtual void GetAppDiffTorrentUrlTest(int version, AppDiffTorrentUrl appDiffTorrentUrl)
         {
-            var asyncResult = API.BeginGetAppDiffTorrentUrl(version);
+            var asyncResult = API.BeginGetAppDiffTorrentUrl(Data.SecretKey, version);
 
             var result = API.EndGetAppDiffTorrentUrl(asyncResult);
 
@@ -191,7 +191,7 @@ namespace PatchKit.API.Tests
         [TestCaseSource("GetAppDiffUrlsTestData")]
         public virtual void GetAppDiffUrlsTest(int version, AppDiffUrl[] appDiffUrls)
         {
-            var asyncResult = API.BeginGetAppDiffUrls(version);
+            var asyncResult = API.BeginGetAppDiffUrls(Data.SecretKey, version);
 
             var result = API.EndGetAppDiffUrls(asyncResult);
 

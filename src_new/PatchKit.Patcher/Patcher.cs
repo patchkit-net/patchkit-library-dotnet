@@ -26,6 +26,8 @@ namespace PatchKit.Patcher
 
         private readonly PatchKitAPI _remoteDatabase;
 
+        private readonly string _secretKey;
+
         internal IDownloader Downloader;
 
         private CancellationTokenSource _cancellationTokenSource;
@@ -64,13 +66,15 @@ namespace PatchKit.Patcher
         {
             IsPatching = false;
             Downloader = downloader;
+            _secretKey = patcherSettings.SecretKey;
             _localApplication = new LocalApplication(localPath, HashUtilities.ComputeStringHash(patcherSettings.SecretKey));
-            _remoteDatabase = new PatchKitAPI(new PatchKitAPISettings(patcherSettings.SecretKey, patcherSettings.ServiceURL.ToString()));
+            _remoteDatabase = new PatchKitAPI(new PatchKitAPISettings(patcherSettings.ServiceUrl.ToString()));
         }
 
         public int GetCurrentVersion()
         {
-            var result = _remoteDatabase.GetAppLatestVersionID();
+            var result = _remoteDatabase.BeginGetAppLatestVersionId(_secretKey);
+            result.AsyncWaitHandle.WaitOne();
             while (!result.IsCompleted)
             {
                 _cancellationTokenSource.Token.ThrowIfCancellationRequested();

@@ -4,9 +4,9 @@ using JetBrains.Annotations;
 namespace PatchKit.API.Async
 {
     /// <summary>
-    /// Cancellation token callback registration. Callback is unregistered when this registration is disposed.
+    /// Cancellation token callback registration. Callback is unregistered when registration object is disposed.
     /// </summary>
-    public class AsyncCancellationTokenRegistration : IDisposable
+    public sealed class AsyncCancellationTokenRegistration : IDisposable
     {
         [CanBeNull]
         internal Action Callback { get; private set; }

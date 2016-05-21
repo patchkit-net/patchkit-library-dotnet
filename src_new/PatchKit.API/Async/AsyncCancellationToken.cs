@@ -8,24 +8,27 @@ namespace PatchKit.API.Async
     /// </summary>
     public struct AsyncCancellationToken
     {
+        public static readonly AsyncCancellationToken None = new AsyncCancellationToken(null);
+
         [CanBeNull]
         private readonly AsyncCancellationTokenSource _cancellationTokenSource;
 
-        internal AsyncCancellationToken([NotNull] AsyncCancellationTokenSource cancellationTokenSource) : this()
+        internal AsyncCancellationToken(AsyncCancellationTokenSource cancellationTokenSource) : this()
         {
-            if (cancellationTokenSource == null)
-            {
-                throw new ArgumentNullException("cancellationTokenSource");
-            }
-
             _cancellationTokenSource = cancellationTokenSource;
         }
 
+        /// <summary>
+        /// <c>True</c> if cancellation is requested. Otherwise <c>false</c>.
+        /// </summary>
         public bool IsCancellationRequested
         {
             get { return _cancellationTokenSource != null && _cancellationTokenSource.IsCancellationRequested; }
         }
 
+        /// <summary>
+        /// Throws <see cref="OperationCanceledException"/> if cancellation is requested.
+        /// </summary>
         public void ThrowIfCancellationRequested()
         {
             if (IsCancellationRequested)
@@ -34,6 +37,23 @@ namespace PatchKit.API.Async
             }
         }
 
+        /// <summary>
+        /// Registers a callback which executes on cancellation. If token is already cancelled, callback is executed immediately.
+        /// </summary>
+        /// <param name="callback">Callback to execute.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="callback"/> is null.
+        /// </exception>
+        /// <returns>Registration which can be used to unregister the callback by disposing the registration object.</returns>
+        /// <example>
+        /// // Register cancellation callback
+        /// var registration = cancellationToken.Register(() => Thread.CurrentThread.Abort);
+        /// // Callback will be unregistered after leaving using scope.
+        /// using(registration)
+        /// {
+        /// // Some operations
+        /// }
+        /// </example>
         public AsyncCancellationTokenRegistration Register([NotNull] Action callback)
         {
             if (callback == null)

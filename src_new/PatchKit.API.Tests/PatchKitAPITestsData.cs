@@ -6,6 +6,8 @@ namespace PatchKit.API.Tests
     {
         public PatchKitAPISettings Settings;
 
+        public string SecretKey;
+
         public AppVersion[] AppVersions;
 
         public AppContentSummary[] AppContentSummaries;
@@ -25,23 +27,24 @@ namespace PatchKit.API.Tests
             get { return AppVersions[AppVersions.Length - 1]; }
         }
 
-        public AppLatestVersionID AppLatestVersionID
+        public AppLatestVersionId AppLatestVersionId
         {
             get
             {
-                return new AppLatestVersionID
+                return new AppLatestVersionId
                 {
-                    ID = AppLatestVersion.ID
+                    Id = AppLatestVersion.Id
                 };
             }
         }
 
         public static readonly PatchKitAPITestsData Default = new PatchKitAPITestsData
         {
-            Settings = new PatchKitAPISettings("874e2b343034cdc6e1aa6c02340bd469", "http://test.patchkit.net:8080", new[]
+            Settings = new PatchKitAPISettings("http://test.patchkit.net:8080", new[]
             {
                 "http://test.patchkit.net:43231"
             }),
+            SecretKey = "874e2b343034cdc6e1aa6c02340bd469",
             AppVersions = new[]
             {
                 new AppVersion
@@ -49,7 +52,7 @@ namespace PatchKit.API.Tests
                     Changelog = "Changelog1",
                     ContentGuid = "c319cfa3-2f0d-4c6a-8ca0-30fc48550bcf",
                     DiffGuid = null,
-                    ID = 1,
+                    Id = 1,
                     Label = "1.0",
                     PublishTime = 1463258360
                 },
@@ -58,7 +61,7 @@ namespace PatchKit.API.Tests
                     Changelog = "Changelog2",
                     ContentGuid = "4e7750e5-73a6-4a68-9e83-9c105f4143a7",
                     DiffGuid = "32f46463-cb77-4322-b142-d830192ad79a",
-                    ID = 2,
+                    Id = 2,
                     Label = "1.23f",
                     PublishTime = -1
                 }

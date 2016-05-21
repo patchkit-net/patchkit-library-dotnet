@@ -37,12 +37,13 @@
       <HintPath>..\packages\JetBrains.Annotations.10.1.4\lib\net20\JetBrains.Annotations.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net35\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
-      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net20\Newtonsoft.Json.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Async\AsyncCancellationTokenRegistration.cs" />
@@ -61,7 +62,7 @@
     <Compile Include="Web\IWWW.cs" />
     <Compile Include="PatchKitAPIException.cs" />
     <Compile Include="Data\AppVersionsList.cs" />
-    <Compile Include="Data\AppLatestVersionID.cs" />
+    <Compile Include="Data\AppLatestVersionId.cs" />
     <Compile Include="Data\AppVersion.cs" />
     <Compile Include="Data\AppContentFile.cs" />
     <Compile Include="Data\AppContentSummary.cs" />

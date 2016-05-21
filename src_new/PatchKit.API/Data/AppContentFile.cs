@@ -7,16 +7,16 @@ namespace PatchKit.API.Data
 	/// </summary>
 	public struct AppContentFile
 	{
-		/// <summary>
-		/// File name.
-		/// </summary>
-		[JsonProperty("path")]
+        /// <summary>
+        /// Relative file path.
+        /// </summary>
+        [JsonProperty("path")]
 		public string Path;
 
-		/// <summary>
-		/// Hash xxhash64.
-		/// </summary>
-		[JsonProperty("hash")]
+        /// <summary>
+        /// File hash.
+        /// </summary>
+        [JsonProperty("hash")]
 		public string Hash;
 	}
 }

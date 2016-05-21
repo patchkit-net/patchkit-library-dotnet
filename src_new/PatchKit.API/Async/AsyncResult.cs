@@ -10,7 +10,8 @@ namespace PatchKit.API.Async
     /// <typeparam name="T">Type of data returned by operation.</typeparam>
     public class AsyncResult<T> : ICancellableAsyncResult
     {
-        private readonly AsyncCancellationTokenSource _cancellationTokenSource = new AsyncCancellationTokenSource();
+        [CanBeNull]
+        private readonly AsyncCancellationTokenSource _cancellationTokenSource;
 
         private readonly object _statusLocker = new object();
 
@@ -40,6 +41,9 @@ namespace PatchKit.API.Async
             get { return false; }
         }
 
+        /// <summary>
+        /// Result of async opperation.
+        /// </summary>
         public T Result
         {
             get
@@ -57,6 +61,9 @@ namespace PatchKit.API.Async
             }
         }
 
+        /// <summary>
+        /// Exception which was raised by async operation.
+        /// </summary>
         public Exception Exception
         {
             get
@@ -93,6 +100,21 @@ namespace PatchKit.API.Async
             }
         }
 
+        public bool CanBeCancelled
+        {
+            get
+            {
+                if (_cancellationTokenSource == null)
+                {
+                    return false;
+                }
+
+                lock (_statusLocker)
+                {
+                    return !IsCompleted;
+                }
+            }
+        }
 
         private AsyncResult(CancellableAsyncCallback asyncCallback, object asyncState)
         {
@@ -101,7 +123,13 @@ namespace PatchKit.API.Async
             IsCompleted = false;
         }
 
-        public AsyncResult([NotNull] Func<T> work, AsyncCallback callback, object state) : this(ar => callback(ar), state)
+        public AsyncResult([NotNull] Func<T> work, AsyncCallback callback = null, object state = null) : this(ar =>
+        {
+            if (callback != null)
+            {
+                callback(ar);
+            }
+        }, state)
         {
             if (work == null)
             {
@@ -111,24 +139,32 @@ namespace PatchKit.API.Async
             QueueWorkOnThreadPool(work);
         }
 
-        public AsyncResult([NotNull] Func<AsyncCancellationToken, T> work, CancellableAsyncCallback callback, object state) : this(callback, state)
+        public AsyncResult([NotNull] Func<AsyncCancellationToken, T> work, CancellableAsyncCallback callback = null, object state = null) : this(callback, state)
         {
             if (work == null)
             {
                 throw new ArgumentNullException("work");
             }
 
+            _cancellationTokenSource = new AsyncCancellationTokenSource();
+
             QueueWorkOnThreadPool(() => work(_cancellationTokenSource.Token));
         }
 
         public bool Cancel()
         {
+            if (_cancellationTokenSource == null)
+            {
+                return false;
+            }
+
             lock (_statusLocker)
             {
                 if (IsCompleted)
                 {
                     return false;
                 }
+
                 _cancellationTokenSource.Cancel();
 
                 return true;
@@ -180,11 +216,20 @@ namespace PatchKit.API.Async
 
     public class AsyncResult : AsyncResult<object>
     {
-        public AsyncResult(Func<object> work, AsyncCallback callback, object state) : base(work, callback, state)
+        public AsyncResult([NotNull] Action work, AsyncCallback callback = null, object state = null) : base(() =>
+        {
+            work();
+            return null;
+        }, callback, state)
         {
         }
 
-        public AsyncResult(Func<AsyncCancellationToken, object> work, CancellableAsyncCallback callback, object state) : base(work, callback, state)
+        public AsyncResult([NotNull] Action<AsyncCancellationToken> work, CancellableAsyncCallback callback = null, object state = null) : base(
+            cancellationToken =>
+            {
+                work(cancellationToken);
+                return null;
+            }, callback, state)
         {
         }
     }

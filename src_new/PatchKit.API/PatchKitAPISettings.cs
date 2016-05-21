@@ -1,56 +1,27 @@
 ﻿using System;
+using JetBrains.Annotations;
 
 namespace PatchKit.API
 {
+    /// <summary>
+    /// API settings.
+    /// </summary>
     public class PatchKitAPISettings
     {
-        private string _secretKey;
-
         private string _apiUrl;
-
-        private string[] _mirrorAPIUrls;
 
         private long _delayBetweenMirrorRequests;
 
-        public PatchKitAPISettings(string secretKey, string apiUrl, string[] mirrorAPIUrls, long delayBetweenMirrorRequests)
+        public PatchKitAPISettings(string apiUrl = "http://api.patchkit.net", string[] mirrorAPIUrls = null, long delayBetweenMirrorRequests = 500)
         {
-            SecretKey = secretKey;
             APIUrl = apiUrl;
             MirrorAPIUrls = mirrorAPIUrls;
             DelayBetweenMirrorRequests = delayBetweenMirrorRequests;
         }
 
-        public PatchKitAPISettings(string secretKey, string apiUrl, string[] mirrorAPIUrls) : this(secretKey, apiUrl, mirrorAPIUrls, 5000)
-        {
-        }
-
-        public PatchKitAPISettings(string secretKey, string apiUrl) : this(secretKey, apiUrl, new string[0])
-        {
-        }
-
-        public PatchKitAPISettings(string secretKey) : this(secretKey, "http://api.patchkit.net")
-        {
-        }
-
-        //TODO: API key.
-
-        //TODO: Move secret to requests.
-        public string SecretKey
-        {
-            get
-            {
-                return _secretKey;
-            }
-            set
-            {
-                if (string.IsNullOrEmpty(value))
-                {
-                    throw new ArgumentException("value");
-                }
-                _secretKey = value;
-            }
-        }
-
+        /// <summary>
+        /// The url for main api server.
+        /// </summary>
         public string APIUrl
         {
             get
@@ -67,22 +38,15 @@ namespace PatchKit.API
             }
         }
 
-        public string[] MirrorAPIUrls
-        {
-            get
-            {
-                return _mirrorAPIUrls;
-            }
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException("value");
-                }
-                _mirrorAPIUrls = value;
-            }
-        }
+        /// <summary>
+        /// The urls for mirror api servers.
+        /// </summary>
+        [CanBeNull]
+        public string[] MirrorAPIUrls { get; set; }
 
+        /// <summary>
+        /// Delay between mirror requests are sent.
+        /// </summary>
         public long DelayBetweenMirrorRequests
         {
             get

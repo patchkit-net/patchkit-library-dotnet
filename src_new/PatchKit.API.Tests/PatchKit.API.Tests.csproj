@@ -52,7 +52,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IWWWProvider.cs" />
+    <Compile Include="PatchKitAPIAsyncUnitTests.cs" />
     <Compile Include="PatchKitAPIIntegrationTests.cs" />
+    <Compile Include="PatchKitAPISettingsUnitTests.cs" />
     <Compile Include="PatchKitAPITests.cs" />
     <Compile Include="PatchKitAPITestsData.cs" />
     <Compile Include="PatchKitAPIUnitTests.cs" />

@@ -3,11 +3,11 @@
 namespace PatchKit.API.Data
 {
 	/// <summary>
-	/// App current version information.
+	/// App latest version id.
 	/// </summary>
-    public struct AppLatestVersionID
+    public struct AppLatestVersionId
     {
         [JsonProperty("id")]
-        public int ID;
+        public int Id;
     }
 }

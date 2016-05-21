@@ -3,7 +3,7 @@
 namespace PatchKit.API.Data
 {
 	/// <summary>
-	/// URL to app content torrent.
+	/// Url to app content torrent.
 	/// </summary>
 	public struct AppContentTorrentUrl
 	{

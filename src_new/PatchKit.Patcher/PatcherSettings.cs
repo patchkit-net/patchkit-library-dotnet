@@ -8,9 +8,9 @@ namespace PatchKit.Patcher
     public struct PatcherSettings
     {
         /// <summary>
-        /// URL to patching service.
+        /// Url to patching service.
         /// </summary>
-        public Uri ServiceURL;
+        public Uri ServiceUrl;
 
         /// <summary>
         /// Secret key for application.

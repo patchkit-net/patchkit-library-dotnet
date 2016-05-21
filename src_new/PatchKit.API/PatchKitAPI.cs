@@ -19,7 +19,7 @@ namespace PatchKit.API
 
         private readonly PatchKitAPISettings _settings;
 
-        public PatchKitAPI([NotNull] PatchKitAPISettings settings, IWWW www)
+        public PatchKitAPI([NotNull] PatchKitAPISettings settings, [NotNull] IWWW www)
         {
             if (settings == null)
             {
@@ -34,15 +34,15 @@ namespace PatchKit.API
             _www = www;
         }
 
-        public PatchKitAPI(PatchKitAPISettings settings) : this(settings, new DefaultWWW())
+        public PatchKitAPI([NotNull] PatchKitAPISettings settings) : this(settings, new DefaultWWW())
         {
         }
 
-        public ICancellableAsyncResult BeginGetAppVersionsList()
+        public ICancellableAsyncResult BeginGetAppVersionsList(string secretKey, CancellableAsyncCallback callback = null, object state = null)
         {
-            string methodUrl = string.Format("1/apps/{0}/versions", _settings.SecretKey);
+            string methodUrl = string.Format("1/apps/{0}/versions", secretKey);
 
-            return BeginAPIRequest<AppVersion[]>(methodUrl);
+            return BeginAPIRequest<AppVersion[]>(methodUrl, callback, state);
         }
 
         public AppVersion[] EndGetAppVersionsList(IAsyncResult asyncResult)
@@ -51,11 +51,11 @@ namespace PatchKit.API
         }
 
 
-        public ICancellableAsyncResult BeginGetAppLatestVersion()
+        public ICancellableAsyncResult BeginGetAppLatestVersion(string secretKey, CancellableAsyncCallback callback = null, object state = null)
         {
-            string methodUrl = string.Format("1/apps/{0}/versions/latest", _settings.SecretKey);
+            string methodUrl = string.Format("1/apps/{0}/versions/latest", secretKey);
 
-			return BeginAPIRequest<AppVersion> (methodUrl);
+			return BeginAPIRequest<AppVersion> (methodUrl, callback, state);
         }
 
         public AppVersion EndGetAppLatestVersion(IAsyncResult asyncResult)
@@ -64,24 +64,24 @@ namespace PatchKit.API
         }
 
 
-        public ICancellableAsyncResult BeginGetAppLatestVersionID()
+        public ICancellableAsyncResult BeginGetAppLatestVersionId(string secretKey, CancellableAsyncCallback callback = null, object state = null)
         {
-            string methodUrl = string.Format("1/apps/{0}/versions/latest/id", _settings.SecretKey);
+            string methodUrl = string.Format("1/apps/{0}/versions/latest/id", secretKey);
 
-            return BeginAPIRequest<AppLatestVersionID>(methodUrl);
+            return BeginAPIRequest<AppLatestVersionId>(methodUrl, callback, state);
         }
 
-        public AppLatestVersionID EndGetAppLatestVersionID(IAsyncResult asyncResult)
+        public AppLatestVersionId EndGetAppLatestVersionId(IAsyncResult asyncResult)
         {
-            return EndAPIRequest<AppLatestVersionID>(asyncResult);
+            return EndAPIRequest<AppLatestVersionId>(asyncResult);
         }
 
 
-        public ICancellableAsyncResult BeginGetAppVersion(int version)
+        public ICancellableAsyncResult BeginGetAppVersion(string secretKey, int version, CancellableAsyncCallback callback = null, object state = null)
 		{
-			string methodUrl = string.Format("1/apps/{0}/versions/{1}", _settings.SecretKey, version);
+			string methodUrl = string.Format("1/apps/{0}/versions/{1}", secretKey, version);
 
-			return BeginAPIRequest<AppVersion> (methodUrl);
+			return BeginAPIRequest<AppVersion> (methodUrl, callback, state);
 		}
 
         public AppVersion EndGetAppVersion(IAsyncResult asyncResult)
@@ -90,11 +90,11 @@ namespace PatchKit.API
         }
 
 
-        public ICancellableAsyncResult BeginGetAppContentSummary(int version)
+        public ICancellableAsyncResult BeginGetAppContentSummary(string secretKey, int version, CancellableAsyncCallback callback = null, object state = null)
 		{
-			string methodUrl = string.Format("1/apps/{0}/versions/{1}/content_summary", _settings.SecretKey, version);
+			string methodUrl = string.Format("1/apps/{0}/versions/{1}/content_summary", secretKey, version);
 
-			return BeginAPIRequest<AppContentSummary> (methodUrl);
+			return BeginAPIRequest<AppContentSummary> (methodUrl, callback, state);
 		}
 
         public AppContentSummary EndGetAppContentSummary(IAsyncResult asyncResult)
@@ -103,11 +103,11 @@ namespace PatchKit.API
         }
 
 
-        public ICancellableAsyncResult BeginGetAppContentTorrentUrl(int version)
+        public ICancellableAsyncResult BeginGetAppContentTorrentUrl(string secretKey, int version, CancellableAsyncCallback callback = null, object state = null)
 		{
-			string methodUrl = string.Format("1/apps/{0}/versions/{1}/content_torrent_url", _settings.SecretKey, version);
+			string methodUrl = string.Format("1/apps/{0}/versions/{1}/content_torrent_url", secretKey, version);
 
-			return BeginAPIRequest<AppContentTorrentUrl> (methodUrl);
+			return BeginAPIRequest<AppContentTorrentUrl> (methodUrl, callback, state);
 		}
 
         public AppContentTorrentUrl EndGetAppContentTorrentUrl(IAsyncResult asyncResult)
@@ -116,11 +116,11 @@ namespace PatchKit.API
         }
 
 
-        public ICancellableAsyncResult BeginGetAppContentUrls(int version)
+        public ICancellableAsyncResult BeginGetAppContentUrls(string secretKey, int version, CancellableAsyncCallback callback = null, object state = null)
         {
-            string methodUrl = string.Format("1/apps/{0}/versions/{1}/content_urls", _settings.SecretKey, version);
+            string methodUrl = string.Format("1/apps/{0}/versions/{1}/content_urls", secretKey, version);
 
-            return BeginAPIRequest<AppContentUrl[]>(methodUrl);
+            return BeginAPIRequest<AppContentUrl[]>(methodUrl, callback, state);
         }
 
         public AppContentUrl[] EndGetAppContentUrls(IAsyncResult asyncResult)
@@ -129,11 +129,11 @@ namespace PatchKit.API
         }
 
 
-        public ICancellableAsyncResult BeginGetAppDiffSummary(int version)
+        public ICancellableAsyncResult BeginGetAppDiffSummary(string secretKey, int version, CancellableAsyncCallback callback = null, object state = null)
 		{
-			string methodUrl = string.Format("1/apps/{0}/versions/{1}/diff_summary", _settings.SecretKey, version);
+			string methodUrl = string.Format("1/apps/{0}/versions/{1}/diff_summary", secretKey, version);
 
-			return BeginAPIRequest<AppDiffSummary> (methodUrl);
+			return BeginAPIRequest<AppDiffSummary> (methodUrl, callback, state);
 		}
 
         public AppDiffSummary EndGetAppDiffSummary(IAsyncResult asyncResult)
@@ -142,11 +142,11 @@ namespace PatchKit.API
         }
 
 
-        public ICancellableAsyncResult BeginGetAppDiffTorrentUrl(int version)
+        public ICancellableAsyncResult BeginGetAppDiffTorrentUrl(string secretKey, int version, CancellableAsyncCallback callback = null, object state = null)
 		{
-			string methodUrl = string.Format("1/apps/{0}/versions/{1}/diff_torrent_url", _settings.SecretKey, version);
+			string methodUrl = string.Format("1/apps/{0}/versions/{1}/diff_torrent_url", secretKey, version);
 
-			return BeginAPIRequest<AppDiffTorrentUrl> (methodUrl);
+			return BeginAPIRequest<AppDiffTorrentUrl> (methodUrl, callback, state);
 		}
 
         public AppDiffTorrentUrl EndGetAppDiffTorrentUrl(IAsyncResult asyncResult)
@@ -155,11 +155,11 @@ namespace PatchKit.API
         }
 
 
-        public ICancellableAsyncResult BeginGetAppDiffUrls(int version)
+        public ICancellableAsyncResult BeginGetAppDiffUrls(string secretKey, int version, CancellableAsyncCallback callback = null, object state = null)
         {
-            string methodUrl = string.Format("1/apps/{0}/versions/{1}/diff_urls", _settings.SecretKey, version);
+            string methodUrl = string.Format("1/apps/{0}/versions/{1}/diff_urls", secretKey, version);
 
-            return BeginAPIRequest<AppDiffUrl[]>(methodUrl);
+            return BeginAPIRequest<AppDiffUrl[]>(methodUrl, callback, state);
         }
 
         public AppDiffUrl[] EndGetAppDiffUrls(IAsyncResult asyncResult)
@@ -168,9 +168,9 @@ namespace PatchKit.API
         }
 
 
-        private ICancellableAsyncResult BeginAPIRequest<T>(string url)
+        private ICancellableAsyncResult BeginAPIRequest<T>(string url, CancellableAsyncCallback callback, object state)
 		{
-			var result = new AsyncResult<T> (cancellationToken => DownloadAndVerifyServerResponse<T>(url, cancellationToken), null, null);
+			var result = new AsyncResult<T> (cancellationToken => DownloadAndVerifyServerResponse<T>(url, cancellationToken), callback, state);
 
 			return result;
 		}
@@ -242,59 +242,60 @@ namespace PatchKit.API
                     
 
                     // Make a request for each mirror.
-                    foreach (var mirrorUrl in _settings.MirrorAPIUrls)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        lock (requestsLock)
+                    if (_settings.MirrorAPIUrls != null)
+                        foreach (var mirrorUrl in _settings.MirrorAPIUrls)
                         {
-                            // Wait 5 seconds, until a request is finished or until operation is cancelled.
-                            if (GetNumberOfUncompletedRequests(mainRequest, mirrorRequests.Keys) > 0)
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            lock (requestsLock)
                             {
-                                Monitor.Wait(requestsLock, (int)_settings.DelayBetweenMirrorRequests);
-                            }
-                        }
-
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        lock (requestsLock)
-                        {
-                            correctResponse = FindCorrectResponse(mainResponse[0], mirrorRequests.Values);
-                        }
-
-                        // If correct response is found, leave the foreach.
-                        if (correctResponse != null)
-                        {
-                            break;
-                        }
-
-                        lock (requestsLock)
-                        {
-                            // Make new mirror request.
-                            mirrorRequests.Add(_www.BeginDownloadString(GetUrl(mirrorUrl, methodUrl), ar =>
-                            {
-                                try
+                                // Wait 5 seconds, until a request is finished or until operation is cancelled.
+                                if (GetNumberOfUncompletedRequests(mainRequest, mirrorRequests.Keys) > 0)
                                 {
-                                    lock (requestsLock)
-                                    {
-                                        // Save mirror response.
-                                        mirrorRequests[ar] = _www.EndDownloadString(ar);
-                                    }
+                                    Monitor.Wait(requestsLock, (int) _settings.DelayBetweenMirrorRequests);
                                 }
-                                finally
+                            }
+
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            lock (requestsLock)
+                            {
+                                correctResponse = FindCorrectResponse(mainResponse[0], mirrorRequests.Values);
+                            }
+
+                            // If correct response is found, leave the foreach.
+                            if (correctResponse != null)
+                            {
+                                break;
+                            }
+
+                            lock (requestsLock)
+                            {
+                                // Make new mirror request.
+                                mirrorRequests.Add(_www.BeginDownloadString(GetUrl(mirrorUrl, methodUrl), ar =>
                                 {
-                                    lock (requestsLock)
+                                    try
                                     {
-                                        // Pulse the lock if there are no pending requests left. 
-                                        if (GetNumberOfUncompletedRequests(mainRequest, mirrorRequests.Keys) <= 0)
+                                        lock (requestsLock)
                                         {
-                                            Monitor.PulseAll(requestsLock);
+                                            // Save mirror response.
+                                            mirrorRequests[ar] = _www.EndDownloadString(ar);
                                         }
                                     }
-                                }
-                            }), null);
+                                    finally
+                                    {
+                                        lock (requestsLock)
+                                        {
+                                            // Pulse the lock if there are no pending requests left. 
+                                            if (GetNumberOfUncompletedRequests(mainRequest, mirrorRequests.Keys) <= 0)
+                                            {
+                                                Monitor.PulseAll(requestsLock);
+                                            }
+                                        }
+                                    }
+                                }), null);
+                            }
                         }
-                    }
 
                     lock (requestsLock)
                     {

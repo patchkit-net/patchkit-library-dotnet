@@ -7,17 +7,26 @@ namespace PatchKit.API.Async
     /// <summary>
     /// Cancellation token source for asynchronus operations.
     /// </summary>
-    public class AsyncCancellationTokenSource
+    public sealed class AsyncCancellationTokenSource
     {
         private LinkedList<AsyncCancellationTokenRegistration> _registeredCallbacks;
 
+        /// <summary>
+        /// Cancellation token.
+        /// </summary>
         public AsyncCancellationToken Token
         {
             get { return new AsyncCancellationToken(this); }
         }
 
-        public bool IsCancellationRequested { get; protected set; }
+        /// <summary>
+        /// <c>True</c> if cancellation is requested. Otherwise <c>false</c>.
+        /// </summary>
+        public bool IsCancellationRequested { get; private set; }
 
+        /// <summary>
+        /// Requests the cancellation. Executes all of callbacks registered with <see cref="AsyncCancellationToken.Register"/>.
+        /// </summary>
         public void Cancel()
         {
             IsCancellationRequested = true;
