@@ -2,12 +2,14 @@
 using System.IO;
 using System.Net;
 using System.Text;
-using System.Threading;
 using JetBrains.Annotations;
 using PatchKit.API.Async;
 
 namespace PatchKit.API.Web
 {
+    /// <summary>
+    /// Default implementation for accessing web resources.
+    /// </summary>
 	public class DefaultWWW : IWWW
 	{
 	    private readonly long _timeout;
@@ -21,7 +23,7 @@ namespace PatchKit.API.Web
         {
 	    }
 
-	    public ICancellableAsyncResult BeginDownloadString(string url, CancellableAsyncCallback asyncCallback, object state)
+	    public ICancellableAsyncResult BeginDownloadString(string url, CancellableAsyncCallback asyncCallback = null, object state = null)
 	    {
 	        return new AsyncResult<WWWResponse<string>>(cancellationToken => DownloadString(url, cancellationToken), asyncCallback, state);
 	    }
@@ -40,67 +42,82 @@ namespace PatchKit.API.Web
 
 	    private WWWResponse<string> DownloadString(string url, AsyncCancellationToken cancellationToken)
 	    {
+            // Create HTTP web request.
             var httpRequest = WebRequest.Create(url) as HttpWebRequest;
 
+            // Check whether type of request is HTTP.
+            // Otherwise throw exception about wrong url which caused request to be different than HTTP.
             if (httpRequest == null)
             {
-                throw new FormatException(string.Format("Provided url {0} is not vaild HTTP url.", url));
+                throw new FormatException(string.Format("Invaild HTTP url \"{0}\"", url));
             }
 
-            string responseData = string.Empty;
-            int responseStatusCode = 0;
-            Exception responseException = null;
-
-	        ManualResetEvent manualResetEvent = new ManualResetEvent(false);
-
-            httpRequest.BeginGetResponse(ar =>
+            // Register to callback to abort the request when operation is cancelled.
+            var cancellationTokenRegistration = cancellationToken.Register(() =>
             {
-                try
-                {
-                    var response = (HttpWebResponse) httpRequest.EndGetResponse(ar);
+                httpRequest.Abort();
+            });
 
-                    // ReSharper disable once AssignNullToNotNullAttribute
-                    var responseEncoding = Encoding.GetEncoding(response.CharacterSet);
 
-                    // ReSharper disable once AssignNullToNotNullAttribute
-                    using (var sr = new StreamReader(response.GetResponseStream(), responseEncoding))
-                    {
-                        responseData = sr.ReadToEnd();
-
-                        responseStatusCode = (int) response.StatusCode;
-                    }
-                }
-                catch (Exception exception)
-                {
-                    responseException = exception;
-                }
-                finally
-                {
-                    manualResetEvent.Set();
-                }
+            // Begin getting response from the url. 
+            // Note that this function does initial operations synchronously so it can freeze the operation for some time.
+            // TODO: Find better solution so the operation wouldn't be freezed because of that.
+            // Source : https://msdn.microsoft.com/pl-pl/library/system.net.httpwebrequest.begingetresponse(v=vs.110).aspx
+            var asyncResult = httpRequest.BeginGetResponse(ar =>
+            {
             }, null);
 
-            Timer timoutTimer = new Timer(state =>
+            // Cancellation token registration is unregistered when registration is disposed. That's why cancellationTokenRegistration is surrounded by using.
+            using (cancellationTokenRegistration)
             {
-                httpRequest.Abort();
-            });
-	        timoutTimer.Change(_timeout, Timeout.Infinite);
+                // Wait until the requests finishes.
+                asyncResult.AsyncWaitHandle.WaitOne((int) _timeout, false);
 
-            cancellationToken.Register(() =>
-            {
-                httpRequest.Abort();
-            });
+                // Check whether operation wasn't aborted by the cancellation.
+	            cancellationToken.ThrowIfCancellationRequested();
 
-            manualResetEvent.WaitOne();
+                // Check whether operation wasn't aborted by the timeout.
+	            if (!asyncResult.IsCompleted)
+	            {
+	                throw new TimeoutException();
+	            }
 
-            cancellationToken.ThrowIfCancellationRequested();
+                try
+                {
+                    using (var response = (HttpWebResponse) httpRequest.EndGetResponse(asyncResult))
+                    {
+                        using (var responseStream = response.GetResponseStream())
+                        {
+                            if (responseStream != null)
+                            {
+                                // ReSharper disable once AssignNullToNotNullAttribute
+                                var responseEncoding = Encoding.GetEncoding(response.CharacterSet);
 
-	        if (responseException != null)
-	        {
-	            throw responseException;
+                                // Create stream reader for reading the text from the response stream.
+                                using (var sr = new StreamReader(responseStream, responseEncoding))
+                                {
+                                    var responseData = sr.ReadToEnd();
+
+                                    var responseStatusCode = (int) response.StatusCode;
+
+                                    return new WWWResponse<string>(responseData, responseStatusCode);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (WebException)
+                {
+                    // WebException can be raised by EndGetResponse when the request has been aborted.
+                    // We need to check whether this situation has happend - simply throw cancellation exception if operation has been cancelled.
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // Otherwise rethrow the exception.
+                    throw;
+                }
+
+                throw new WebException("Couldn't read response stream.");
 	        }
-
-            return new WWWResponse<string>(responseData, responseStatusCode);
 	    }
 	}
 }

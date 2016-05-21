@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using NSubstitute;
 using NUnit.Framework;
+using PatchKit.API.Async;
 using PatchKit.API.Data;
 using PatchKit.API.Web;
 
@@ -10,11 +11,16 @@ namespace PatchKit.API.Tests
     /*[TestFixture]
     public class PatchKitAPIUnitTests : PatchKitAPITests
     {
+        //TODO : Make substitute for ICancellableAsyncResult (maybe IFetchableAsyncResult is required)
         private class WWWProvider : IWWWProvider
         {
             public IWWW GetWWW()
             {
-                return Substitute.For<IWWW>();
+                var www = Substitute.For<IWWW>();
+
+                www.EndDownloadString(Arg.Any<ICancellableAsyncResult>()).Returns(i => ((AsyncResult<WWWResponse<string>>) i.Arg<ICancellableAsyncResult>()).FetchResultsFromAsyncOperation());
+
+                return www;
             }
         }
 
@@ -22,11 +28,12 @@ namespace PatchKit.API.Tests
         {
         }
 
-        private void WWWRequestArg(IWWW www, string apiUrl, string url)
+        private void BeginDownloadStringSubstitute(IWWW www, string apiUrl, string methodUrl, string content, int statusCode)
         {
-            string fullUrl = apiUrl.EndsWith("/") ? apiUrl + url : apiUrl + "/" + url;
-
-            www.DownloadString(Arg.Is<WWWRequest<string>>(request => request.Url == fullUrl));
+            www.BeginDownloadString(apiUrl).Returns(info =>
+            {
+                return new AsyncResult(() => { return fullUrl; }, null, fullUrl);
+            });
         }
 
         [Test]

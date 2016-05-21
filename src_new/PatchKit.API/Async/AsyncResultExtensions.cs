@@ -14,7 +14,7 @@ namespace PatchKit.API.Async
                 throw new Exception("Async operation exception.", @this.Exception);
             }
 
-            if (@this.HasBeenCancelled)
+            if (@this.IsCancelled)
             {
                 throw new InvalidOperationException("Async operation has been cancelled during result fetching. You should never try to retrive result after cancelling the operation.");
             }

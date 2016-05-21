@@ -10,46 +10,29 @@ namespace PatchKit.API.Async
     /// <typeparam name="T">Type of data returned by operation.</typeparam>
     public class AsyncResult<T> : ICancellableAsyncResult
     {
-        private readonly object _locker = new object();
+        private readonly AsyncCancellationTokenSource _cancellationTokenSource = new AsyncCancellationTokenSource();
 
-        private readonly object _state;
+        private readonly object _statusLocker = new object();
 
-        private readonly CancellableAsyncCallback _callback;
+        private readonly object _asyncWaitHandleLocker = new object();
 
-        private ManualResetEvent _manualResetEvent;
+        private ManualResetEvent _asyncWaitHandle;
 
-        public T Result { get; private set; }
+        private readonly object _asyncState;
 
-        public Exception Exception { get; private set; }
+        private readonly CancellableAsyncCallback _asyncCallback;
+
+        private T _result;
+
+        private Exception _exception;
 
         public bool IsCompleted { get; private set; }
 
-        public bool HasBeenCancelled { get; private set; }
-
-        public readonly AsyncCancellationTokenSource CancellationTokenSource = new AsyncCancellationTokenSource();
-
-        public WaitHandle AsyncWaitHandle
-        {
-            get
-            {
-                lock (_locker)
-                {
-                    if (_manualResetEvent == null)
-                    {
-                        _manualResetEvent = new ManualResetEvent(false);
-                    }
-                    if (IsCompleted)
-                    {
-                        _manualResetEvent.Set();
-                    }
-                }
-                return _manualResetEvent;
-            }
-        }
+        public bool IsCancelled { get; private set; }
 
         public object AsyncState
         {
-            get { return _state; }
+            get { return _asyncState; }
         }
 
         public bool CompletedSynchronously
@@ -57,10 +40,64 @@ namespace PatchKit.API.Async
             get { return false; }
         }
 
-        private AsyncResult(CancellableAsyncCallback callback, object state)
+        public T Result
         {
-            _callback = callback;
-            _state = state;
+            get
+            {
+                lock (_statusLocker)
+                {
+                    if (!IsCompleted)
+                    {
+                        throw new InvalidOperationException(
+                            "Cannot access the result when async operation isn't completed.");
+                    }
+                }
+
+                return _result;
+            }
+        }
+
+        public Exception Exception
+        {
+            get
+            {
+                lock (_statusLocker)
+                {
+                    if (!IsCompleted)
+                    {
+                        throw new InvalidOperationException(
+                            "Cannot access the exception when async operation isn't completed.");
+                    }
+                }
+
+                return _exception;
+            }
+        }
+
+        public WaitHandle AsyncWaitHandle
+        {
+            get
+            {
+                lock (_asyncWaitHandleLocker)
+                {
+                    if (_asyncWaitHandle == null)
+                    {
+                        _asyncWaitHandle = new ManualResetEvent(false);
+                    }
+                    if (IsCompleted)
+                    {
+                        _asyncWaitHandle.Set();
+                    }
+                }
+                return _asyncWaitHandle;
+            }
+        }
+
+
+        private AsyncResult(CancellableAsyncCallback asyncCallback, object asyncState)
+        {
+            _asyncCallback = asyncCallback;
+            _asyncState = asyncState;
             IsCompleted = false;
         }
 
@@ -81,17 +118,21 @@ namespace PatchKit.API.Async
                 throw new ArgumentNullException("work");
             }
 
-            QueueWorkOnThreadPool(() => work(CancellationTokenSource.Token));
+            QueueWorkOnThreadPool(() => work(_cancellationTokenSource.Token));
         }
 
-        public void Cancel()
+        public bool Cancel()
         {
-            if (IsCompleted)
+            lock (_statusLocker)
             {
-                throw new InvalidOperationException("You cannot cancel already completed operation.");
+                if (IsCompleted)
+                {
+                    return false;
+                }
+                _cancellationTokenSource.Cancel();
+
+                return true;
             }
-            
-            CancellationTokenSource.Cancel();
         }
 
         private void QueueWorkOnThreadPool(Func<T> work)
@@ -100,31 +141,37 @@ namespace PatchKit.API.Async
             {
                 try
                 {
-                    Result = work();
+                    _result = work();
                 }
                 catch (OperationCanceledException)
                 {
-                    HasBeenCancelled = true;
+                    lock (_statusLocker)
+                    {
+                        IsCancelled = true;
+                    }
                 }
                 catch (Exception exception)
                 {
-                    Exception = exception;
+                    _exception = exception;
                 }
                 finally
                 {
-                    IsCompleted = true;
-
-                    lock (_locker)
+                    lock (_statusLocker)
                     {
-                        if (_manualResetEvent != null)
+                        IsCompleted = true;
+                    }
+
+                    lock (_asyncWaitHandleLocker)
+                    {
+                        if (_asyncWaitHandle != null)
                         {
-                            _manualResetEvent.Set();
+                            _asyncWaitHandle.Set();
                         }
                     }
 
-                    if (_callback != null)
+                    if (_asyncCallback != null)
                     {
-                        _callback(this);
+                        _asyncCallback(this);
                     }
                 }
             });

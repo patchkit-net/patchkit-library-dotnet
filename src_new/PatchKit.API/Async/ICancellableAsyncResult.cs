@@ -4,8 +4,8 @@ namespace PatchKit.API.Async
 {
     public interface ICancellableAsyncResult : IAsyncResult
     {
-        bool HasBeenCancelled { get; }
+        bool IsCancelled { get; }
 
-        void Cancel();
+        bool Cancel();
     }
 }

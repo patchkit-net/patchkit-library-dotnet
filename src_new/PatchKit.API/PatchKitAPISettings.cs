@@ -17,7 +17,7 @@ namespace PatchKit.API
             SecretKey = secretKey;
             APIUrl = apiUrl;
             MirrorAPIUrls = mirrorAPIUrls;
-            _delayBetweenMirrorRequests = delayBetweenMirrorRequests;
+            DelayBetweenMirrorRequests = delayBetweenMirrorRequests;
         }
 
         public PatchKitAPISettings(string secretKey, string apiUrl, string[] mirrorAPIUrls) : this(secretKey, apiUrl, mirrorAPIUrls, 5000)
@@ -32,6 +32,9 @@ namespace PatchKit.API
         {
         }
 
+        //TODO: API key.
+
+        //TODO: Move secret to requests.
         public string SecretKey
         {
             get
@@ -40,9 +43,9 @@ namespace PatchKit.API
             }
             set
             {
-                if (value == null)
+                if (string.IsNullOrEmpty(value))
                 {
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentException("value");
                 }
                 _secretKey = value;
             }
@@ -56,9 +59,9 @@ namespace PatchKit.API
             }
             set
             {
-                if (value == null)
+                if (string.IsNullOrEmpty(value))
                 {
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentException("value");
                 }
                 _apiUrl = value;
             }

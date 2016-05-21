@@ -34,7 +34,7 @@ namespace PatchKit.API.Async
             }
         }
 
-        public void Register([NotNull] Action callback)
+        public AsyncCancellationTokenRegistration Register([NotNull] Action callback)
         {
             if (callback == null)
             {
@@ -43,10 +43,10 @@ namespace PatchKit.API.Async
 
             if (_cancellationTokenSource == null)
             {
-                return;
+                return new AsyncCancellationTokenRegistration(null);
             }
 
-            _cancellationTokenSource.Register(callback);
+            return _cancellationTokenSource.Register(callback);
         }
     }
 }

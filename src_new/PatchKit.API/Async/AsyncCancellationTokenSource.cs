@@ -9,7 +9,7 @@ namespace PatchKit.API.Async
     /// </summary>
     public class AsyncCancellationTokenSource
     {
-        private LinkedList<Action> _registeredCallbacks;
+        private LinkedList<AsyncCancellationTokenRegistration> _registeredCallbacks;
 
         public AsyncCancellationToken Token
         {
@@ -26,30 +26,36 @@ namespace PatchKit.API.Async
             {
                 foreach (var registeredCallback in _registeredCallbacks)
                 {
-                    registeredCallback();
+                    if (registeredCallback.Callback != null)
+                    {
+                        registeredCallback.Callback();
+                    }
                 }
             }
         }
 
-        internal void Register([NotNull] Action callback)
+        internal AsyncCancellationTokenRegistration Register([NotNull] Action callback)
         {
             if (callback == null)
             {
                 throw new ArgumentNullException("callback");
             }
 
+            var registration = new AsyncCancellationTokenRegistration(callback);
+
             if (IsCancellationRequested)
             {
                 callback();
-                return;
             }
 
             if (_registeredCallbacks == null)
             {
-                _registeredCallbacks = new LinkedList<Action>();
+                _registeredCallbacks = new LinkedList<AsyncCancellationTokenRegistration>();
             }
 
-            _registeredCallbacks.AddLast(callback);
+            _registeredCallbacks.AddLast(registration);
+
+            return registration;
         }
     }
 }

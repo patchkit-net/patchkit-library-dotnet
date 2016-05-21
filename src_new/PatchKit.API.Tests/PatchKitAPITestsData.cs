@@ -38,7 +38,10 @@ namespace PatchKit.API.Tests
 
         public static readonly PatchKitAPITestsData Default = new PatchKitAPITestsData
         {
-            Settings = new PatchKitAPISettings("874e2b343034cdc6e1aa6c02340bd469", "http://test.patchkit.net:8080", new string[0]),
+            Settings = new PatchKitAPISettings("874e2b343034cdc6e1aa6c02340bd469", "http://test.patchkit.net:8080", new[]
+            {
+                "http://test.patchkit.net:43231"
+            }),
             AppVersions = new[]
             {
                 new AppVersion
