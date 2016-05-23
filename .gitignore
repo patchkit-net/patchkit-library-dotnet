@@ -1,5 +1,11 @@
+/src/PatchKit.sln.DotSettings.user
 /src/.vs/
 /src/bin/
 /src/obj/
 /src/packages/
-/src/PatchKit.sln.DotSettings.user
+/src/PatchKit.API/bin/
+/src/PatchKit.API/obj/
+/src/PatchKit.API.Tests/bin/
+/src/PatchKit.API.Tests/obj/
+/src/PatchKit.Patcher/bin/
+/src/PatchKit.Patcher/obj/

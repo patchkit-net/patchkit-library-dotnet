@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <!--Main settings-->
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">ReleaseNET35</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A4FE22C5-A246-493D-B07D-A385305D4177}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>PatchKit.API</RootNamespace>
+    <AssemblyName>PatchKit.API</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <!--Debug .NET 3.5-->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugNET35|AnyCPU' ">
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\DebugNET35\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;NET35</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>4</LangVersion>
+  </PropertyGroup>
+  <!--Release .NET 3.5-->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'ReleaseNET35|AnyCPU' ">
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\ReleaseNET35\</OutputPath>
+    <DefineConstants>TRACE;NET35</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>4</LangVersion>
+  </PropertyGroup>
+  <!--Debug .NET 4.5-->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugNET45|AnyCPU'">
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\DebugNET45\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;NET45</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>4</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <!--Release .NET 4.5-->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseNET45|AnyCPU'">
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <OutputPath>bin\ReleaseNET45\</OutputPath>
+    <DefineConstants>TRACE;NET45</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>4</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <!--Referenced libraries-->
+  <ItemGroup>
+    <!--System-->
+    <Reference Include="System" />
+    <!--System.Core-->
+    <Reference Include="System.Core" />
+    <!--Newtonsoft.Json .NET 3.5-->
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL" Condition="'$(TargetFrameworkVersion)' == 'v3.5'">
+      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net35\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <!--Newtonsoft.Json .NET 4.5-->
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL" Condition="'$(TargetFrameworkVersion)' == 'v4.5'">
+      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <!--JetBrains.Annotations-->
+    <Reference Include="JetBrains.Annotations, Version=10.1.4.0, Culture=neutral, PublicKeyToken=1010a0d8d6380325, processorArchitecture=MSIL">
+      <HintPath>..\packages\JetBrains.Annotations.10.1.4\lib\net20\JetBrains.Annotations.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!--Source files-->
+  <ItemGroup>
+    <Compile Include="Async\AsyncCancellationTokenRegistration.cs" />
+    <Compile Include="Async\AsyncResultExtensions.cs" />
+    <Compile Include="Async\CancellableAsyncCallback.cs" />
+    <Compile Include="Async\ICancellableAsyncResult.cs" />
+    <Compile Include="Data\AppContentUrl.cs" />
+    <Compile Include="Data\AppDiffUrl.cs" />
+    <Compile Include="PatchKitAPI.Generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>PatchKitAPI.Generated.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PatchKitAPI.cs" />
+    <Compile Include="Async\AsyncCancellationToken.cs" />
+    <Compile Include="Async\AsyncCancellationTokenSource.cs" />
+    <Compile Include="PatchKitAPISettings.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Async\AsyncResult.cs" />
+    <Compile Include="Web\DefaultWWW.cs" />
+    <Compile Include="Web\IWWW.cs" />
+    <Compile Include="PatchKitAPIException.cs" />
+    <Compile Include="Data\AppVersionsList.cs" />
+    <Compile Include="Data\AppLatestVersionId.cs" />
+    <Compile Include="Data\AppVersion.cs" />
+    <Compile Include="Data\AppContentFile.cs" />
+    <Compile Include="Data\AppContentSummary.cs" />
+    <Compile Include="Data\AppDiffSummary.cs" />
+    <Compile Include="Data\AppContentTorrentUrl.cs" />
+    <Compile Include="Data\AppDiffTorrentUrl.cs" />
+    <Compile Include="Web\WWWResponse.cs" />
+    <None Include="PatchKitAPI.Generated.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PatchKitAPI.Generated.cs</LastGenOutput>
+    </None>
+    <None Include="apiResources.json" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+</Project>

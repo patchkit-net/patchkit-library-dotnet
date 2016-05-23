@@ -1,0 +1,150 @@
+﻿[
+	{
+		"name" : "GetAppVersionsList",
+		"type" : "AppVersion[]",
+		"url" : "1/apps/{0}/versions",
+		"args" : 
+		[
+			{
+				"name" :  "secretKey",
+    			"type" :  "string"
+			}
+		]
+	},
+	{
+		"name" : "GetAppLatestVersion",
+		"type" : "AppVersion",
+		"url" : "1/apps/{0}/versions/latest",
+		"args" : 
+		[
+			{
+				"name" :  "secretKey",
+    			"type" :  "string"
+			}
+		]
+	},
+	{
+		"name" : "GetAppLatestVersionId",
+		"type" : "AppLatestVersionId",
+		"url" : "1/apps/{0}/versions/latest/id",
+		"args" : 
+		[
+			{
+				"name" :  "secretKey",
+    			"type" :  "string"
+			}
+		]
+	},
+	{
+		"name" : "GetAppVersion",
+		"type" : "AppVersion",
+		"url" : "1/apps/{0}/versions/{1}",
+		"args" : 
+		[
+			{
+				"name" :  "secretKey",
+    			"type" :  "string"
+			},
+			{
+				"name" :  "version",
+    			"type" :  "int"
+			}
+		]
+	},
+	{
+		"name" : "GetAppContentSummary",
+		"type" : "AppContentSummary",
+		"url" : "1/apps/{0}/versions/{1}/content_summary",
+		"args" : 
+		[
+			{
+				"name" :  "secretKey",
+    			"type" :  "string"
+			},
+			{
+				"name" :  "version",
+    			"type" :  "int"
+			}
+		]
+	},
+	{
+		"name" : "GetAppContentTorrentUrl",
+		"type" : "AppContentTorrentUrl",
+		"url" : "1/apps/{0}/versions/{1}/content_torrent_url",
+		"args" : 
+		[
+			{
+				"name" :  "secretKey",
+    			"type" :  "string"
+			},
+			{
+				"name" :  "version",
+    			"type" :  "int"
+			}
+		]
+	},
+	{
+		"name" : "GetAppContentUrls",
+		"type" : "AppContentUrl[]",
+		"url" : "1/apps/{0}/versions/{1}/content_urls",
+		"args" : 
+		[
+			{
+				"name" :  "secretKey",
+    			"type" :  "string"
+			},
+			{
+				"name" :  "version",
+    			"type" :  "int"
+			}
+		]
+	},
+	{
+		"name" : "GetAppDiffSummary",
+		"type" : "AppDiffSummary",
+		"url" : "1/apps/{0}/versions/{1}/diff_summary",
+		"args" : 
+		[
+			{
+				"name" :  "secretKey",
+    			"type" :  "string"
+			},
+			{
+				"name" :  "version",
+    			"type" :  "int"
+			}
+		]
+	},
+	{
+		"name" : "GetAppDiffTorrentUrl",
+		"type" : "AppDiffTorrentUrl",
+		"url" : "1/apps/{0}/versions/{1}/diff_torrent_url",
+		"args" : 
+		[
+			{
+				"name" :  "secretKey",
+    			"type" :  "string"
+			},
+			{
+				"name" :  "version",
+    			"type" :  "int"
+			}
+		]
+	},
+	{
+		"name" : "GetAppDiffUrls",
+		"type" : "AppDiffUrl[]",
+		"url" : "1/apps/{0}/versions/{1}/diff_urls",
+		"args" : 
+		[
+			{
+				"name" :  "secretKey",
+    			"type" :  "string"
+			},
+			{
+				"name" :  "version",
+    			"type" :  "int"
+			}
+		]
+	}
+]

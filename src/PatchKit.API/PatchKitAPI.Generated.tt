@@ -1,0 +1,68 @@
+﻿<#@ template debug="false" hostspecific="true" language="C#" #>
+<#@ assembly name="System" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Linq" #>
+<#@ assembly name="Newtonsoft.Json.dll" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="Newtonsoft.Json.Linq" #>
+<#@ output extension=".cs" #>
+using System;
+using PatchKit.API.Data;
+using PatchKit.API.Async;
+namespace PatchKit.API
+{
+    public partial class PatchKitAPI
+    {
+		<#
+		var apiResources = JToken.Parse(File.ReadAllText(Host.ResolvePath("apiResources.json")));
+		foreach (var res in apiResources)
+		{
+			string argumentsWithTypes = string.Join(", ", res["args"].Select(arg => arg["type"] + " " + arg["name"]));
+			string argumentsWithoutTypes = string.Join(", ", res["args"].Select(arg => arg["name"]));
+			WriteLine("public ICancellableAsyncResult Begin{0}({1}CancellableAsyncCallback callback = null, object state = null)", res["name"], string.IsNullOrEmpty(argumentsWithTypes) ? string.Empty : argumentsWithTypes + ", ");
+		#>
+		<#
+			WriteLine("{");
+		#>
+			<#
+			WriteLine("return BeginAPIRequest<{0}>(string.Format(\"{1}\"{2}), callback, state);", res["type"], res["url"], string.IsNullOrEmpty(argumentsWithoutTypes) ? string.Empty : ", " + argumentsWithoutTypes);
+			#>
+		<#
+			WriteLine("}");
+		#>
+		
+		<#
+			WriteLine("public {0} End{1}(IAsyncResult asyncResult)", res["type"], res["name"]);
+		#>
+		<#
+			WriteLine("{");
+		#>
+			<#
+			WriteLine("return EndAPIRequest<{0}>(asyncResult);", res["type"]);
+			#>
+		<#
+			WriteLine("}");
+		#>
+
+		#if NET45
+		<#
+			WriteLine("public System.Threading.Tasks.Task<{0}> {1}Async({2}System.Threading.CancellationToken cancellationToken)", res["type"], res["name"], string.IsNullOrEmpty(argumentsWithTypes) ? string.Empty : argumentsWithTypes + ", ");
+		#>
+		<#
+			WriteLine("{");
+		#>
+			<#
+			WriteLine("return ToAsync(callback => Begin{0}({1}callback), End{0}, cancellationToken);", res["name"], string.IsNullOrEmpty(argumentsWithoutTypes) ? string.Empty : argumentsWithoutTypes + ", ");
+			#>
+		<#
+			WriteLine("}");
+		#>
+		#endif
+
+		<#
+		}
+		#>
+
+	}
+}
