@@ -8,29 +8,29 @@ using PatchKit.API.Async;
 namespace PatchKit.API.Web
 {
     /// <summary>
-    /// Default implementation for accessing web resources.
+    /// Implementation of <see cref="IStringDownloader"/>.
     /// </summary>
-	public class DefaultWWW : IWWW
+	public class StringDownloader : IStringDownloader
 	{
 	    private readonly long _timeout;
 
-	    public DefaultWWW(long timeout)
+	    public StringDownloader(long timeout)
 	    {
 	        _timeout = timeout;
 	    }
 
-	    public DefaultWWW() : this(15000)
+	    public StringDownloader() : this(15000)
         {
 	    }
 
 	    public ICancellableAsyncResult BeginDownloadString(string url, CancellableAsyncCallback asyncCallback = null, object state = null)
 	    {
-	        return new AsyncResult<WWWResponse<string>>(cancellationToken => DownloadString(url, cancellationToken), asyncCallback, state);
+	        return new AsyncResult<StringDownloadResult>(cancellationToken => DownloadString(url, cancellationToken), asyncCallback, state);
 	    }
 
-	    public WWWResponse<string> EndDownloadString([NotNull] ICancellableAsyncResult asyncResult)
+	    public StringDownloadResult EndDownloadString([NotNull] ICancellableAsyncResult asyncResult)
 	    {
-	        var result = asyncResult as AsyncResult<WWWResponse<string>>;
+	        var result = asyncResult as AsyncResult<StringDownloadResult>;
 
             if (result == null)
             {
@@ -40,9 +40,7 @@ namespace PatchKit.API.Web
 	        return result.FetchResultsFromAsyncOperation();
 	    }
 
-        //TODO: Write task version (with usage of GetResponseAsync)
-
-	    private WWWResponse<string> DownloadString(string url, AsyncCancellationToken cancellationToken)
+        private StringDownloadResult DownloadString(string url, AsyncCancellationToken cancellationToken)
 	    {
             // Create HTTP web request.
             var httpRequest = WebRequest.Create(url) as HttpWebRequest;
@@ -102,7 +100,7 @@ namespace PatchKit.API.Web
 
                                     var responseStatusCode = (int) response.StatusCode;
 
-                                    return new WWWResponse<string>(responseData, responseStatusCode);
+                                    return new StringDownloadResult(responseData, responseStatusCode);
                                 }
                             }
                         }
@@ -121,6 +119,6 @@ namespace PatchKit.API.Web
                 throw new WebException("Couldn't read response stream.");
 	        }
 	    }
-	}
+    }
 }
 

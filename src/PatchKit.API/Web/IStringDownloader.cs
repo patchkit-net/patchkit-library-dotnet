@@ -2,7 +2,10 @@
 
 namespace PatchKit.API.Web
 {
-    public interface IWWW
+    /// <summary>
+    /// Interface providing string downloading functionality.
+    /// </summary>
+    public interface IStringDownloader
     {
         /// <summary>
         /// Begins an asynchronus download of text string from <paramref name="url"/>.
@@ -17,6 +20,6 @@ namespace PatchKit.API.Web
         /// Waits until the async operation is completed and retrieves result from it.
         /// </summary>
         /// <seealso cref="AsyncResultExtensions.FetchResultsFromAsyncOperation{T}"/>
-        WWWResponse<string> EndDownloadString(ICancellableAsyncResult asyncResult);
+        StringDownloadResult EndDownloadString(ICancellableAsyncResult asyncResult);
     }
 }

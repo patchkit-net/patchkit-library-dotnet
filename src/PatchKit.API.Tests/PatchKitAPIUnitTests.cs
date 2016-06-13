@@ -15,9 +15,9 @@ namespace PatchKit.API.Tests
     {
         private class WWWProvider : IWWWProvider
         {
-            public IWWW GetWWW()
+            public IStringDownloader GetWWW()
             {
-                var www = Substitute.For<IWWW>();
+                var www = Substitute.For<IStringDownloader>();
 
                 return www;
             }
@@ -46,7 +46,7 @@ namespace PatchKit.API.Tests
             ar.CompletedSynchronously.Returns(false);
             ar.Cancel().Returns(false);
 
-            WWW.BeginDownloadString(GetUrl(apiUrl, methodUrl), Arg.Any<CancellableAsyncCallback>(), Arg.Any<object>()).Returns(
+            StringDownloader.BeginDownloadString(GetUrl(apiUrl, methodUrl), Arg.Any<CancellableAsyncCallback>(), Arg.Any<object>()).Returns(
                 info =>
                 {
                     var callback = info.Arg<CancellableAsyncCallback>();
@@ -56,28 +56,28 @@ namespace PatchKit.API.Tests
                     }
                     return ar;
                 });
-            WWW.EndDownloadString(ar).Returns(info => new WWWResponse<string>(content, statusCode));
+            StringDownloader.EndDownloadString(ar).Returns(info => new StringDownloadResult(content, statusCode));
         }
 
         private void DownloadStringSubstitute(string methodUrl, string content)
         {
-            if (Data.Settings.MirrorAPIUrls != null)
-                foreach (var mirrorAPIUrl in Data.Settings.MirrorAPIUrls)
+            if (Data.Settings.MirrorUrls != null)
+                foreach (var mirrorAPIUrl in Data.Settings.MirrorUrls)
                 {
                     DownloadStringSubstitute(mirrorAPIUrl, methodUrl, content, 200);
                 }
 
-            DownloadStringSubstitute(Data.Settings.APIUrl, methodUrl, content, 200);
+            DownloadStringSubstitute(Data.Settings.Url, methodUrl, content, 200);
         }
 
         private void CheckDownloadStringSubstitute(string apiUrl, string methodUrl)
         {
-            WWW.Received(1).BeginDownloadString(GetUrl(apiUrl, methodUrl), Arg.Any<CancellableAsyncCallback>(), Arg.Any<object>());
+            StringDownloader.Received(1).BeginDownloadString(GetUrl(apiUrl, methodUrl), Arg.Any<CancellableAsyncCallback>(), Arg.Any<object>());
         }
 
         private void CheckDownloadStringSubstitute(string methodUrl) 
         {
-            CheckDownloadStringSubstitute(Data.Settings.APIUrl, methodUrl);
+            CheckDownloadStringSubstitute(Data.Settings.Url, methodUrl);
         }
 
         [Test]
@@ -105,7 +105,7 @@ namespace PatchKit.API.Tests
 
             DownloadStringSubstitute(url, JsonConvert.SerializeObject(Data.AppVersions));
 
-            var task = Task.Factory.FromAsync((callback, o) => API.BeginGetAppVersionsList(Data.SecretKey, (ar) => callback(ar), o),
+            var task = Task.Factory.FromAsync((callback, o) => API.BeginGetAppVersionsList(Data.SecretKey, ar => callback(ar), o),
                 result => API.EndGetAppVersionsList(result), null);
 
             task.Wait();

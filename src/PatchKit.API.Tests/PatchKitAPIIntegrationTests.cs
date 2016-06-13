@@ -8,9 +8,9 @@ namespace PatchKit.API.Tests
     {
         private class WWWProvider : IWWWProvider
         {
-            public IWWW GetWWW()
+            public IStringDownloader GetWWW()
             {
-                return new DefaultWWW();
+                return new StringDownloader();
             }
         }
 

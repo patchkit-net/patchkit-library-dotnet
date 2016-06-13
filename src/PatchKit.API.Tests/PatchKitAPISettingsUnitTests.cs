@@ -29,7 +29,7 @@ namespace PatchKit.API.Tests
 
             Assert.Throws<ArgumentException>(() =>
             {
-                settings.APIUrl = string.Empty;
+                settings.Url = string.Empty;
             });
 
             Assert.Throws<ArgumentOutOfRangeException>(() =>

@@ -14,26 +14,30 @@ namespace PatchKit.API
     /// </summary>
     public partial class PatchKitAPI
     {
-        private readonly IWWW _www;
+        private readonly IStringDownloader _stringDownloader;
 
         private readonly PatchKitAPISettings _settings;
 
-        public PatchKitAPI([NotNull] PatchKitAPISettings settings, [NotNull] IWWW www)
+        public PatchKitAPI([NotNull] PatchKitAPISettings settings, [NotNull] IStringDownloader stringDownloader)
         {
             if (settings == null)
             {
                 throw new ArgumentNullException("settings");
             }
-            if (www == null)
+            if (stringDownloader == null)
             {
-                throw new ArgumentNullException("www");
+                throw new ArgumentNullException("stringDownloader");
             }
 
             _settings = settings;
-            _www = www;
+            _stringDownloader = stringDownloader;
         }
 
-        public PatchKitAPI([NotNull] PatchKitAPISettings settings) : this(settings, new DefaultWWW())
+        public PatchKitAPI([NotNull] PatchKitAPISettings settings) : this(settings, new StringDownloader())
+        {
+        }
+
+        public PatchKitAPI() : this(new PatchKitAPISettings())
         {
         }
 
@@ -59,15 +63,15 @@ namespace PatchKit.API
         private T DownloadAndVerifyServerResponse<T>(string methodUrl, AsyncCancellationToken cancellationToken)
         {
             // Create dictionary of mirror requests and responses.
-            var mirrorRequests = new Dictionary<ICancellableAsyncResult, WWWResponse<string>?>();
+            var mirrorRequests = new Dictionary<ICancellableAsyncResult, StringDownloadResult?>();
 
             ICancellableAsyncResult mainRequest = null;
 
-            WWWResponse<string>?[] mainResponse = {null};
+            StringDownloadResult?[] mainDownloadResult = {null};
 
             Exception[] mainException = {null};
 
-            WWWResponse<string>? correctResponse = null;
+            StringDownloadResult? correctDownloadResult = null;
 
             object requestsLock = new object();
 
@@ -77,7 +81,7 @@ namespace PatchKit.API
                 using (cancellationToken.Register(() => Monitor.PulseAll(requestsLock)))
                 {
                     // Begin with main request.
-                    mainRequest = _www.BeginDownloadString(GetUrl(_settings.APIUrl, methodUrl),
+                    mainRequest = _stringDownloader.BeginDownloadString(GetUrl(_settings.Url, methodUrl),
                         ar =>
                         {
                             try
@@ -87,7 +91,7 @@ namespace PatchKit.API
                                     lock (requestsLock)
                                     {
                                         // Save the main response.
-                                        mainResponse[0] = _www.EndDownloadString(ar);
+                                        mainDownloadResult[0] = _stringDownloader.EndDownloadString(ar);
                                     }
                                 }
                             }
@@ -111,8 +115,9 @@ namespace PatchKit.API
                     
 
                     // Make a request for each mirror.
-                    if (_settings.MirrorAPIUrls != null)
-                        foreach (var mirrorUrl in _settings.MirrorAPIUrls)
+                    if (_settings.MirrorUrls != null)
+                    {
+                        foreach (var mirrorUrl in _settings.MirrorUrls)
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
@@ -129,11 +134,11 @@ namespace PatchKit.API
 
                             lock (requestsLock)
                             {
-                                correctResponse = FindCorrectResponse(mainResponse[0], mirrorRequests.Values);
+                                correctDownloadResult = FindCorrectResult(mainDownloadResult[0], mirrorRequests.Values);
                             }
 
                             // If correct response is found, leave the foreach.
-                            if (correctResponse != null)
+                            if (correctDownloadResult != null)
                             {
                                 break;
                             }
@@ -141,14 +146,14 @@ namespace PatchKit.API
                             lock (requestsLock)
                             {
                                 // Make new mirror request.
-                                mirrorRequests.Add(_www.BeginDownloadString(GetUrl(mirrorUrl, methodUrl), ar =>
+                                mirrorRequests.Add(_stringDownloader.BeginDownloadString(GetUrl(mirrorUrl, methodUrl), ar =>
                                 {
                                     try
                                     {
                                         lock (requestsLock)
                                         {
                                             // Save mirror response.
-                                            mirrorRequests[ar] = _www.EndDownloadString(ar);
+                                            mirrorRequests[ar] = _stringDownloader.EndDownloadString(ar);
                                         }
                                     }
                                     finally
@@ -165,18 +170,19 @@ namespace PatchKit.API
                                 }), null);
                             }
                         }
+                    }
 
                     lock (requestsLock)
                     {
                         // Check whether there are uncompleted requests and correct response is still not found.
                         while (GetNumberOfUncompletedRequests(mainRequest, mirrorRequests.Keys) > 0 &&
-                               correctResponse == null)
+                               correctDownloadResult == null)
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
                             lock (requestsLock)
                             {
-                                correctResponse = FindCorrectResponse(mainResponse[0], mirrorRequests.Values);
+                                correctDownloadResult = FindCorrectResult(mainDownloadResult[0], mirrorRequests.Values);
                             }
 
                             // Wait until a request is finished or until operation is cancelled.
@@ -186,11 +192,11 @@ namespace PatchKit.API
 
                     lock (requestsLock)
                     {
-                        correctResponse = FindCorrectResponse(mainResponse[0], mirrorRequests.Values);
+                        correctDownloadResult = FindCorrectResult(mainDownloadResult[0], mirrorRequests.Values);
                     }
 
                     // If correct response hasn't arrived from any source.
-                    if (correctResponse == null)
+                    if (correctDownloadResult == null)
                     {
                         // Rethrow exception from main request (if exists).
                         if (mainException[0] != null)
@@ -199,23 +205,23 @@ namespace PatchKit.API
                         }
 
                         // Throw API exception containing status code from the response (if exists).
-                        if (mainResponse[0] != null)
+                        if (mainDownloadResult[0] != null)
                         {
-                            throw new PatchKitAPIException("Unexcepted API response." + mainResponse[0].Value.StatusCode, mainResponse[0].Value.StatusCode);
+                            throw new PatchKitAPIException("Unexcepted API response." + mainDownloadResult[0].Value.StatusCode, mainDownloadResult[0].Value.StatusCode);
                         }
                     }
                     else
                     {
                         // Check whether response status code is correct.
-                        if (correctResponse.Value.StatusCode == 200)
+                        if (correctDownloadResult.Value.StatusCode == 200)
                         {
                             // Deserialize response content.
-                            return JsonConvert.DeserializeObject<T>(correctResponse.Value.Value);
+                            return JsonConvert.DeserializeObject<T>(correctDownloadResult.Value.Value);
                         }
                         else
                         {
                             // Throw API exception containing status code from the response.
-                            throw new PatchKitAPIException("Unexcepted API response." + correctResponse.Value.StatusCode, correctResponse.Value.StatusCode);
+                            throw new PatchKitAPIException("Unexcepted API response." + correctDownloadResult.Value.StatusCode, correctDownloadResult.Value.StatusCode);
                         }
                     }
 
@@ -240,7 +246,7 @@ namespace PatchKit.API
         }
 
         private static int GetNumberOfUncompletedRequests(ICancellableAsyncResult mainRequest,
-            Dictionary<ICancellableAsyncResult, WWWResponse<string>?>.KeyCollection mirrorRequests)
+            Dictionary<ICancellableAsyncResult, StringDownloadResult?>.KeyCollection mirrorRequests)
         {
             return mirrorRequests.Count(r => !r.IsCompleted) + (mainRequest.IsCompleted ? 0 : 1);
         }
@@ -250,20 +256,20 @@ namespace PatchKit.API
             return baseUrl.EndsWith("/") ? baseUrl + methodUrl : baseUrl + "/" + methodUrl;
         }
 
-        private static WWWResponse<string>? FindCorrectResponse([CanBeNull] WWWResponse<string>? mainResponse, Dictionary<ICancellableAsyncResult, WWWResponse<string>?>.ValueCollection mirrorResponses)
+        private static StringDownloadResult? FindCorrectResult([CanBeNull] StringDownloadResult? mainDownloadResult, Dictionary<ICancellableAsyncResult, StringDownloadResult?>.ValueCollection mirrorDownloadResults)
         {
-            if (mainResponse != null)
+            if (mainDownloadResult != null)
             {
-                if (mainResponse.Value.StatusCode == 200 ||
-                    mainResponse.Value.StatusCode == 400 ||
-                    mainResponse.Value.StatusCode == 401 ||
-                    mainResponse.Value.StatusCode == 404)
+                if (mainDownloadResult.Value.StatusCode == 200 ||
+                    mainDownloadResult.Value.StatusCode == 400 ||
+                    mainDownloadResult.Value.StatusCode == 401 ||
+                    mainDownloadResult.Value.StatusCode == 404)
                 {
-                    return mainResponse;
+                    return mainDownloadResult;
                 }
             }
 
-            foreach (var r in mirrorResponses)
+            foreach (var r in mirrorDownloadResults)
             {
                 if (r != null)
                 {

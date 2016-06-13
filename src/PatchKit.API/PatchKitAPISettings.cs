@@ -4,29 +4,29 @@ using JetBrains.Annotations;
 namespace PatchKit.API
 {
     /// <summary>
-    /// API settings.
+    /// <see cref="PatchKitAPI"/> settings.
     /// </summary>
     public class PatchKitAPISettings
     {
-        private string _apiUrl;
+        private string _url;
 
         private long _delayBetweenMirrorRequests;
 
-        public PatchKitAPISettings(string apiUrl = "http://api.patchkit.net", string[] mirrorAPIUrls = null, long delayBetweenMirrorRequests = 500)
+        public PatchKitAPISettings(string url = "http://api.patchkit.net", string[] mirrorUrls = null, long delayBetweenMirrorRequests = 500)
         {
-            APIUrl = apiUrl;
-            MirrorAPIUrls = mirrorAPIUrls;
+            Url = url;
+            MirrorUrls = mirrorUrls;
             DelayBetweenMirrorRequests = delayBetweenMirrorRequests;
         }
 
         /// <summary>
-        /// The url for main api server.
+        /// The url for main API server.
         /// </summary>
-        public string APIUrl
+        public string Url
         {
             get
             {
-                return _apiUrl;
+                return _url;
             }
             set
             {
@@ -34,18 +34,18 @@ namespace PatchKit.API
                 {
                     throw new ArgumentException("value");
                 }
-                _apiUrl = value;
+                _url = value;
             }
         }
 
         /// <summary>
-        /// The urls for mirror api servers.
+        /// The urls for mirror API servers.
         /// </summary>
         [CanBeNull]
-        public string[] MirrorAPIUrls { get; set; }
+        public string[] MirrorUrls { get; set; }
 
         /// <summary>
-        /// Delay between mirror requests are sent.
+        /// Delay between which mirror requests are sent.
         /// </summary>
         public long DelayBetweenMirrorRequests
         {

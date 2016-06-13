@@ -4,6 +4,6 @@ namespace PatchKit.API.Tests
 {
     public interface IWWWProvider
     {
-        IWWW GetWWW();
+        IStringDownloader GetWWW();
     }
 }

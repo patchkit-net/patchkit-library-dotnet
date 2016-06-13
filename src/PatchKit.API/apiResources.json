@@ -1,148 +1,175 @@
 ﻿[
 	{
 		"name" : "GetAppVersionsList",
+		"desc" :  "Gets basic information of all published versions.",
 		"type" : "AppVersion[]",
 		"url" : "1/apps/{0}/versions",
 		"args" : 
 		[
 			{
 				"name" :  "secretKey",
+				"desc" :  "Application secret.",
     			"type" :  "string"
 			}
 		]
 	},
 	{
 		"name" : "GetAppLatestVersion",
+		"desc" : "Gets the latest published version information of given application.",
 		"type" : "AppVersion",
 		"url" : "1/apps/{0}/versions/latest",
 		"args" : 
 		[
 			{
 				"name" :  "secretKey",
+				"desc" :  "Application secret.",
     			"type" :  "string"
 			}
 		]
 	},
 	{
 		"name" : "GetAppLatestVersionId",
+		"desc" : "Gets the latest published version number of given application.",
 		"type" : "AppLatestVersionId",
 		"url" : "1/apps/{0}/versions/latest/id",
 		"args" : 
 		[
 			{
 				"name" :  "secretKey",
+				"desc" :  "Application secret.",
     			"type" :  "string"
 			}
 		]
 	},
 	{
 		"name" : "GetAppVersion",
+		"desc" : "Gets basic information for given version id.",
 		"type" : "AppVersion",
 		"url" : "1/apps/{0}/versions/{1}",
 		"args" : 
 		[
 			{
 				"name" :  "secretKey",
+				"desc" :  "Application secret.",
     			"type" :  "string"
 			},
 			{
 				"name" :  "version",
+				"desc" :  "Application version id.",
     			"type" :  "int"
 			}
 		]
 	},
 	{
 		"name" : "GetAppContentSummary",
+		"desc" : "Gets the content summary of given version.",
 		"type" : "AppContentSummary",
 		"url" : "1/apps/{0}/versions/{1}/content_summary",
 		"args" : 
 		[
 			{
 				"name" :  "secretKey",
+				"desc" :  "Application secret.",
     			"type" :  "string"
 			},
 			{
 				"name" :  "version",
-    			"type" :  "int"
-			}
-		]
-	},
-	{
-		"name" : "GetAppContentTorrentUrl",
-		"type" : "AppContentTorrentUrl",
-		"url" : "1/apps/{0}/versions/{1}/content_torrent_url",
-		"args" : 
-		[
-			{
-				"name" :  "secretKey",
-    			"type" :  "string"
-			},
-			{
-				"name" :  "version",
-    			"type" :  "int"
-			}
-		]
-	},
-	{
-		"name" : "GetAppContentUrls",
-		"type" : "AppContentUrl[]",
-		"url" : "1/apps/{0}/versions/{1}/content_urls",
-		"args" : 
-		[
-			{
-				"name" :  "secretKey",
-    			"type" :  "string"
-			},
-			{
-				"name" :  "version",
+				"desc" :  "Application version id.",
     			"type" :  "int"
 			}
 		]
 	},
 	{
 		"name" : "GetAppDiffSummary",
+		"desc" : "Gets the diff summary of given version.",
 		"type" : "AppDiffSummary",
 		"url" : "1/apps/{0}/versions/{1}/diff_summary",
 		"args" : 
 		[
 			{
 				"name" :  "secretKey",
+				"desc" :  "Application secret.",
     			"type" :  "string"
 			},
 			{
 				"name" :  "version",
+				"desc" :  "Application version id.",
+    			"type" :  "int"
+			}
+		]
+	},
+	{
+		"name" : "GetAppContentTorrentUrl",
+		"desc" : "Gets the URL to content torrent file.",
+		"type" : "AppContentTorrentUrl",
+		"url" : "1/apps/{0}/versions/{1}/content_torrent_url",
+		"args" : 
+		[
+			{
+				"name" :  "secretKey",
+				"desc" :  "Application secret.",
+    			"type" :  "string"
+			},
+			{
+				"name" :  "version",
+				"desc" :  "Application version id.",
     			"type" :  "int"
 			}
 		]
 	},
 	{
 		"name" : "GetAppDiffTorrentUrl",
+		"desc" : "Gets the URL to diff torrent file.",
 		"type" : "AppDiffTorrentUrl",
 		"url" : "1/apps/{0}/versions/{1}/diff_torrent_url",
 		"args" : 
 		[
 			{
 				"name" :  "secretKey",
+				"desc" :  "Application secret.",
     			"type" :  "string"
 			},
 			{
 				"name" :  "version",
+				"desc" :  "Application version id.",
+    			"type" :  "int"
+			}
+		]
+	},
+	{
+		"name" : "GetAppContentUrls",
+		"desc" : "Gets the URLs directly to content file distributed on all online p2p nodes. Usually you will need only one to get the data. All of these URLs are pointing to the same file distributed on different nodes. Nodes recognized as offline are not listed.",
+		"type" : "AppContentUrl[]",
+		"url" : "1/apps/{0}/versions/{1}/content_urls",
+		"args" : 
+		[
+			{
+				"name" :  "secretKey",
+				"desc" :  "Application secret.",
+    			"type" :  "string"
+			},
+			{
+				"name" :  "version",
+				"desc" :  "Application version id.",
     			"type" :  "int"
 			}
 		]
 	},
 	{
 		"name" : "GetAppDiffUrls",
+		"desc" : "Gets the URLs directly to diff file distributed on all online p2p nodes. Usually you will need only one to get the data. All of these URLs are pointing to the same file distributed on different nodes. Nodes recognized as offline are not listed.",
 		"type" : "AppDiffUrl[]",
 		"url" : "1/apps/{0}/versions/{1}/diff_urls",
 		"args" : 
 		[
 			{
 				"name" :  "secretKey",
+				"desc" :  "Application secret.",
     			"type" :  "string"
 			},
 			{
 				"name" :  "version",
+				"desc" :  "Application version id.",
     			"type" :  "int"
 			}
 		]

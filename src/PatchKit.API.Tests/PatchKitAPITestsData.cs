@@ -6,6 +6,8 @@ namespace PatchKit.API.Tests
     {
         public PatchKitAPISettings Settings;
 
+        public string APIKey;
+
         public string SecretKey;
 
         public AppVersion[] AppVersions;
@@ -45,6 +47,7 @@ namespace PatchKit.API.Tests
                 "http://test.patchkit.net:43231"
             }),
             SecretKey = "874e2b343034cdc6e1aa6c02340bd469",
+            APIKey = "aa649da69ba7ec646a3239ea759d493c",
             AppVersions = new[]
             {
                 new AppVersion

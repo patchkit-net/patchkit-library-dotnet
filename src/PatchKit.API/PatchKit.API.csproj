@@ -88,6 +88,10 @@
     <Compile Include="Async\ICancellableAsyncResult.cs" />
     <Compile Include="Data\AppContentUrl.cs" />
     <Compile Include="Data\AppDiffUrl.cs" />
+    <Compile Include="Data\AssetBundleContentUrl.cs" />
+    <Compile Include="Data\AssetBundleGroup.cs" />
+    <Compile Include="Data\AssetBundle.cs" />
+    <Compile Include="Data\AssetBundleVersion.cs" />
     <Compile Include="PatchKitAPI.Generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -99,8 +103,8 @@
     <Compile Include="PatchKitAPISettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Async\AsyncResult.cs" />
-    <Compile Include="Web\DefaultWWW.cs" />
-    <Compile Include="Web\IWWW.cs" />
+    <Compile Include="Web\StringDownloader.cs" />
+    <Compile Include="Web\IStringDownloader.cs" />
     <Compile Include="PatchKitAPIException.cs" />
     <Compile Include="Data\AppVersionsList.cs" />
     <Compile Include="Data\AppLatestVersionId.cs" />
@@ -110,7 +114,7 @@
     <Compile Include="Data\AppDiffSummary.cs" />
     <Compile Include="Data\AppContentTorrentUrl.cs" />
     <Compile Include="Data\AppDiffTorrentUrl.cs" />
-    <Compile Include="Web\WWWResponse.cs" />
+    <Compile Include="Web\StringDownloadResult.cs" />
     <None Include="PatchKitAPI.Generated.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PatchKitAPI.Generated.cs</LastGenOutput>

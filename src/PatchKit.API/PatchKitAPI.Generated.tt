@@ -20,6 +20,18 @@ namespace PatchKit.API
 		{
 			string argumentsWithTypes = string.Join(", ", res["args"].Select(arg => arg["type"] + " " + arg["name"]));
 			string argumentsWithoutTypes = string.Join(", ", res["args"].Select(arg => arg["name"]));
+
+			WriteLine("/// <summary>{0}</summary>", res["desc"]);
+		    foreach (var arg in res["args"])
+		    {
+		#>
+		<#
+				WriteLine("/// <param name=\"{0}\">{1}</param>", arg["name"], arg["desc"]);
+		    }
+		#>
+		/// <param name="callback">The <see cref="CancellableAsyncCallback" /> delegate.</param>
+        /// <param name="state">The state object for this request.</param>
+		<#
 			WriteLine("public ICancellableAsyncResult Begin{0}({1}CancellableAsyncCallback callback = null, object state = null)", res["name"], string.IsNullOrEmpty(argumentsWithTypes) ? string.Empty : argumentsWithTypes + ", ");
 		#>
 		<#
@@ -47,6 +59,16 @@ namespace PatchKit.API
 
 		#if NET45
 		<#
+		WriteLine("/// <summary>{0}</summary>", res["desc"]);
+		    foreach (var arg in res["args"])
+		    {
+		#>
+		<#
+				WriteLine("/// <param name=\"{0}\">{1}</param>", arg["name"], arg["desc"]);
+		    }
+		#>
+		/// <param name="cancellationToken">Cancellation token.</param>
+		<#
 			WriteLine("public System.Threading.Tasks.Task<{0}> {1}Async({2}System.Threading.CancellationToken cancellationToken)", res["type"], res["name"], string.IsNullOrEmpty(argumentsWithTypes) ? string.Empty : argumentsWithTypes + ", ");
 		#>
 		<#
@@ -59,6 +81,28 @@ namespace PatchKit.API
 			WriteLine("}");
 		#>
 		#endif
+
+		<#
+		WriteLine("/// <summary>{0}</summary>", res["desc"]);
+		    foreach (var arg in res["args"])
+		    {
+		#>
+		<#
+				WriteLine("/// <param name=\"{0}\">{1}</param>", arg["name"], arg["desc"]);
+		    }
+		#>
+		<#
+			WriteLine("public {0} {1}({2})", res["type"], res["name"], string.IsNullOrEmpty(argumentsWithTypes) ? string.Empty : argumentsWithTypes);
+		#>
+		<#
+			WriteLine("{");
+		#>
+			<#
+			WriteLine("return End{0}(Begin{0}({1}));", res["name"], argumentsWithoutTypes);
+			#>
+		<#
+			WriteLine("}");
+		#>
 
 		<#
 		}

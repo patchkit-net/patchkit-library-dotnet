@@ -10,7 +10,7 @@ namespace PatchKit.API.Tests
     {
         protected PatchKitAPI API { get; private set; }
 
-        protected IWWW WWW { get; private set; }
+        protected IStringDownloader StringDownloader { get; private set; }
 
         protected static readonly PatchKitAPITestsData Data = PatchKitAPITestsData.Default;
 
@@ -80,8 +80,8 @@ namespace PatchKit.API.Tests
         [SetUp]
         protected virtual void Init()
         {
-            WWW = _wwwProvider.GetWWW();
-            API = new PatchKitAPI(Data.Settings, WWW);
+            StringDownloader = _wwwProvider.GetWWW();
+            API = new PatchKitAPI(Data.Settings, StringDownloader);
         }
 
         [Test]
