@@ -1,16 +1,15 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("PatchKit.Patcher")]
+[assembly: AssemblyTitle("PatchKit.Async")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
-[assembly: AssemblyProduct("PatchKit.Patcher")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2016")]
+[assembly: AssemblyCompany("UpSoft")]
+[assembly: AssemblyProduct("PatchKit.Async")]
+[assembly: AssemblyCopyright("Copyright © UpSoft 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +19,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("e168b154-cd06-4ab3-b283-ad488cf3e253")]
+[assembly: Guid("b0fe047f-6424-4d52-aeeb-562c5e21e987")]
 
 // Version information for an assembly consists of the following four values:
 //

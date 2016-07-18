@@ -4,44 +4,43 @@ using System.Linq;
 using System.Threading;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using PatchKit.API.Async;
 using PatchKit.API.Web;
 
-namespace PatchKit.API
+namespace PatchKit
 {
     /// <summary>
-    /// PatchKit API provider.
+    /// PatchKit Api provider.
     /// </summary>
-    public partial class PatchKitAPI
+	public sealed partial class Api
     {
         private readonly IStringDownloader _stringDownloader;
 
-        private readonly PatchKitAPISettings _settings;
+		private readonly ConnectionSettings _connectionSettings;
 
-        public PatchKitAPI([NotNull] PatchKitAPISettings settings, [NotNull] IStringDownloader stringDownloader)
+		public Api([NotNull] ConnectionSettings connectionSettings, [NotNull] IStringDownloader stringDownloader)
         {
-            if (settings == null)
+            if (connectionSettings == null)
             {
-                throw new ArgumentNullException("settings");
+                throw new ArgumentNullException("connectionSettings");
             }
             if (stringDownloader == null)
             {
                 throw new ArgumentNullException("stringDownloader");
             }
 
-            _settings = settings;
+            _connectionSettings = connectionSettings;
             _stringDownloader = stringDownloader;
         }
 
-        public PatchKitAPI([NotNull] PatchKitAPISettings settings) : this(settings, new StringDownloader())
+        public Api([NotNull] ConnectionSettings connectionSettings) : this(connectionSettings, new StringDownloader())
         {
         }
 
-        public PatchKitAPI() : this(new PatchKitAPISettings())
+        public Api() : this(new PatchKitAPISettings())
         {
         }
 
-        private ICancellableAsyncResult BeginAPIRequest<T>(string url, CancellableAsyncCallback callback, object state)
+        private ICancellableAsyncResult BeginAPIRequest<T>(string resource, CancellableAsyncCallback callback, object state)
 		{
 			var result = new AsyncResult<T> (cancellationToken => DownloadAndVerifyServerResponse<T>(url, cancellationToken), callback, state);
 
@@ -59,6 +58,11 @@ namespace PatchKit.API
 
             return result.FetchResultsFromAsyncOperation();
         }
+
+		private T APIRequest<T>(string resource, AsyncCancellationToken cancellationToken)
+		{
+			
+		}
 
         private T DownloadAndVerifyServerResponse<T>(string methodUrl, AsyncCancellationToken cancellationToken)
         {
@@ -81,7 +85,7 @@ namespace PatchKit.API
                 using (cancellationToken.Register(() => Monitor.PulseAll(requestsLock)))
                 {
                     // Begin with main request.
-                    mainRequest = _stringDownloader.BeginDownloadString(GetUrl(_settings.Url, methodUrl),
+                    mainRequest = _stringDownloader.BeginDownloadString(GetUrl(_connectionSettings.Url, methodUrl),
                         ar =>
                         {
                             try
@@ -115,9 +119,9 @@ namespace PatchKit.API
                     
 
                     // Make a request for each mirror.
-                    if (_settings.MirrorUrls != null)
+                    if (_connectionSettings.MirrorUrls != null)
                     {
-                        foreach (var mirrorUrl in _settings.MirrorUrls)
+                        foreach (var mirrorUrl in _connectionSettings.MirrorUrls)
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
@@ -126,7 +130,7 @@ namespace PatchKit.API
                                 // Wait 5 seconds, until a request is finished or until operation is cancelled.
                                 if (GetNumberOfUncompletedRequests(mainRequest, mirrorRequests.Keys) > 0)
                                 {
-                                    Monitor.Wait(requestsLock, (int) _settings.DelayBetweenMirrorRequests);
+                                    Monitor.Wait(requestsLock, (int) _connectionSettings.DelayBetweenMirrorRequests);
                                 }
                             }
 
@@ -282,20 +286,5 @@ namespace PatchKit.API
 
             return null;
         }
-
-#if NET45
-        private static System.Threading.Tasks.Task<T> ToAsync<T>(Func<CancellableAsyncCallback, ICancellableAsyncResult> beginMethod,
-            Func<IAsyncResult, T> endMethod, CancellationToken cancellationToken)
-        {
-            return System.Threading.Tasks.Task.Factory.FromAsync((callback, o) =>
-            {
-                var asyncResult = beginMethod(ar => callback(ar));
-
-                cancellationToken.Register(() => asyncResult.Cancel());
-
-                return asyncResult;
-            }, endMethod, null);
-        }
-#endif
     }
 }

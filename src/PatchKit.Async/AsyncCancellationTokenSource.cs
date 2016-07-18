@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using JetBrains.Annotations;
 
-namespace PatchKit.API.Async
+namespace PatchKit
 {
     /// <summary>
     /// Cancellation token source for asynchronus operations.

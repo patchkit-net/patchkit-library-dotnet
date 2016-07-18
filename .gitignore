@@ -1,4 +1,5 @@
 /src/PatchKit.sln.DotSettings.user
+/src/PatchKit.userprefs
 /src/.vs/
 /src/bin/
 /src/obj/
@@ -7,5 +8,6 @@
 /src/PatchKit.API/obj/
 /src/PatchKit.API.Tests/bin/
 /src/PatchKit.API.Tests/obj/
-/src/PatchKit.Patcher/bin/
-/src/PatchKit.Patcher/obj/
+/src/.idea.PatchKit/
+/src/PatchKit.Async/bin/
+/src/PatchKit.Async/obj/

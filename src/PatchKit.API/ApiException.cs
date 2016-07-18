@@ -5,14 +5,14 @@ namespace PatchKit.API
     /// <summary>
     /// Occurs when there are problems with API.
     /// </summary>
-    public class PatchKitAPIException : Exception
+    public class ApiException : Exception
     {
         /// <summary>
         /// API status code.
         /// </summary>
         public readonly int StatusCode;
 
-        internal PatchKitAPIException(string message, int statusCode) : base(message)
+        internal ApiException(string message, int statusCode) : base(message)
         {
             StatusCode = statusCode;
         }
