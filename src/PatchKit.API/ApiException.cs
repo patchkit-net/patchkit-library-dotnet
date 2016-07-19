@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PatchKit.API
+namespace PatchKit
 {
     /// <summary>
     /// Occurs when there are problems with API.
