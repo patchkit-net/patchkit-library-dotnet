@@ -70,6 +70,7 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Api.Generated.cs</LastGenOutput>
     </Content>
-    <None Include="SwaggerHelper.tt" />
+    <None Include="CodeGeneration\CodeGenerationHelper.tt" />
+    <None Include="CodeGeneration\SwaggerHelper.tt" />
   </ItemGroup>
 </Project>

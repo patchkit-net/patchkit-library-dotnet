@@ -2,12 +2,12 @@
 using System.Diagnostics;
 using System.Threading;
 using NUnit.Framework;
-using PatchKit.API.Async;
+using PatchKit;
 
-namespace PatchKit.API.Tests
+namespace PatchKitTests
 {
     [TestFixture]
-    public class PatchKitAPIAsyncUnitTests
+    public class AsyncTests
     {
         private static T DoWork<T>(long durationMiliseconds, AsyncCancellationToken cancellationToken, Func<T> result)
         {
@@ -82,7 +82,7 @@ namespace PatchKit.API.Tests
             var state = new object();
 
             var asyncResult = new AsyncResult(() => DoWork(500, AsyncCancellationToken.None), null, state);
-            
+
             Assert.AreSame(asyncResult.AsyncState, state);
 
             asyncResult.AsyncWaitHandle.WaitOne();
@@ -95,7 +95,7 @@ namespace PatchKit.API.Tests
         [Test, MaxTime(1000)]
         public void CallbackTest()
         {
-            AsyncResult[] asyncResult = {null};
+            AsyncResult[] asyncResult = { null };
 
             var waitHandle = new ManualResetEvent(false);
 

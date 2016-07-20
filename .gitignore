@@ -11,3 +11,5 @@
 /src/.idea.PatchKit/
 /src/PatchKit.Async/bin/
 /src/PatchKit.Async/obj/
+/src/PatchKit.Async.Tests/bin/
+/src/PatchKit.Async.Tests/obj/

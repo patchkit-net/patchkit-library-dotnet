@@ -1,145 +1,149 @@
-﻿<#@ output extension=".cs" #>
-<#@ include file="SwaggerHelper.tt"#>
+﻿<#@ template debug="false" hostspecific="true" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ include file="CodeGeneration/SwaggerHelper.tt"#>
+<#@ include file="CodeGeneration/CodeGenerationHelper.tt"#>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="System.IO" #>
 <#@ import namespace="System.Linq" #>
 <#@ assembly name="System.Core" #>
 <#@ assembly name="Newtonsoft.Json.dll" #>
 <#
-	//TODO: Cleanup (maybe helper class)
-	var swaggerHelper = new SwaggerHelper();
-
+    var helper = new CodeGenerationHelper(this);
+    var swaggerHelper = new SwaggerHelper();
+    
     var swagger = JToken.Parse(File.ReadAllText(Host.ResolvePath("swagger.json")));
-    Action<string> writeLine = str => WriteLine(CurrentIndent + str);
-    Action emptyLine = () => writeLine("");
-    Action pushIndent = () => PushIndent("  ");
-    Action popIndent = () => PopIndent();
-    Action openBracket = () =>
-    {
-        writeLine("{");
-        pushIndent();
-    };
-    Action closeBracket = () =>
-    {
-        popIndent();
-        writeLine("}");
-    };
 
-    writeLine("using System;");
-    writeLine("using Newtonsoft.Json;");
-    emptyLine();
-	writeLine("namespace PatchKit");
-    openBracket();
-
-    writeLine("public partial class Api");
-    openBracket();
-	emptyLine();
-
-	// Write struct definitions
-    foreach (var definition in swagger["definitions"].Value<JObject>().Properties())
+    helper.WriteLine("using System;");
+    helper.WriteLine("using Newtonsoft.Json;");
+    
+    using (helper.CreateCodeScope("namespace PatchKit"))
     {
-        if (definition.Value["type"].Value<string>() != "object")
+        using (helper.CreateCodeScope("public partial class Api"))
         {
-            continue;
-        }
+            // Write struct definitions
+            foreach (var definition in swagger["definitions"].Value<JObject>().Properties())
+            {
+                if (definition.Value["type"].Value<string>() != "object")
+                {
+                    continue;
+                }
 
-        writeLine($"public struct {definition.Name}");
-        openBracket();
-        emptyLine();
-        foreach (var property in definition.Value["properties"].Value<JObject>().Properties())
-        {
-            writeLine($"/// <summary>{property.Value["description"]?.Value<string>()}</summary>");
-			writeLine($"[JsonProperty(\"{property.Name}\")]");
-			writeLine($"public {swaggerHelper.ResolveTypeName(property.Value)} {swaggerHelper.GetNicePropertyName(property.Name)};");
-            emptyLine();
+                using (helper.CreateCodeScope($"public struct {definition.Name}"))
+                {
+                    foreach (var property in definition.Value["properties"].Value<JObject>().Properties())
+                    {
+                        string propertyName = swaggerHelper.GetNicePropertyName(property.Name);
+                        string propertyType = swaggerHelper.ResolveType(property.Value);
+
+                        helper.WriteDocsComment("summary", "", property.Value["description"]?.Value<string>());
+                        helper.WriteLine($"[JsonProperty(\"{property.Name}\")]");
+                        helper.WriteLine($"public {propertyType} {propertyName};");
+                    }
+                }
+
+                helper.EmptyLine();
+            }
+
+            // Write methods
+            foreach (var resource in swagger["paths"].Value<JObject>().Properties())
+            {
+                var getResource = resource.Value["get"];
+
+                if (getResource == null)
+                {
+                    continue;
+                }
+
+                var response = getResource["responses"]["200"];
+
+                var schema = response["schema"];
+
+                string resourceName = swaggerHelper.GetMethodNameFromSummary(getResource["summary"].Value<string>());
+                string resourceType = swaggerHelper.ResolveType(schema);
+
+                helper.WriteDocsComment("summary", "", getResource["description"]?.Value<string>());
+                helper.WriteDocsComment("param", "name=\"callback\"", "Callback.");
+
+                var resourceArguments = new List<string>();
+                var resourceArgumentsUsage = new List<string>();
+
+                resourceArguments.Add("CancellableAsyncCallback callback");
+
+                foreach (var argument in getResource["parameters"].OrderByDescending(token => token["required"].Value<bool>()))
+                {
+                    string argumentName = swaggerHelper.GetNiceArgumentName(argument["name"].Value<string>());
+
+                    string argumentType = swaggerHelper.ResolveBaseType(argument);
+
+                    string argumentUsage = argumentName;
+
+                    if (argumentType != "string")
+                    {
+                        argumentUsage += ".ToString()";
+                    }
+
+                    if (argument["in"].Value<string>() == "path")
+                    {
+                        argumentUsage = $"resource = resource.Replace(\"{{{argument["name"]}}}\", {argumentUsage});";
+                    }
+                    else if (argument["in"].Value<string>() == "query")
+                    {
+                        argumentUsage = $"query += \"{argument["name"]}=\"+{argumentUsage}+\"&\";";
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    string argumentDefault = string.Empty;
+
+                    if (!argument["required"].Value<bool>())
+                    {
+                        argumentDefault = " = null";
+
+                        if (argumentType != "string")
+                        {
+                            argumentType = argumentDefault + "?";
+                        }
+
+                        argumentUsage = $"if ({argumentName} != null) " + argumentUsage;
+                    }
+
+                    helper.WriteDocsComment($"param", $"name=\"{argumentName}\"", argument["description"]?.Value<string>());
+
+                    resourceArguments.Add($"{argumentType} {argumentName}{argumentDefault}");
+                    resourceArgumentsUsage.Add(argumentUsage);
+                }
+
+                resourceArguments.Add("object state = null");
+
+                helper.WriteDocsComment("param", "name=\"state\"", "Operation state.");
+
+                using (helper.CreateCodeScope(
+                        $"public ICancellableAsyncResult Begin{resourceName}({string.Join(", ", resourceArguments)})"))
+                {
+                    helper.WriteLine($"string resource = \"{resource.Name.TrimEnd('?')}\";");
+                    helper.WriteLine($"string query = string.Empty;");
+                    foreach (var usage in resourceArgumentsUsage)
+                    {
+                        helper.WriteLine(usage);
+                    }
+                    helper.WriteLine($"return BeginApiRequest<{resourceType}>(resource + \"?\" + query, callback, state);");
+                }
+
+                helper.EmptyLine();
+
+                using (helper.CreateCodeScope($"public {resourceType} End{resourceName}(IAsyncResult asyncResult)"))
+                {
+                    helper.WriteLine($"return EndApiRequest<{resourceType}>(asyncResult);");
+                }
+
+                helper.EmptyLine();
+            }
         }
-        closeBracket();
-        emptyLine();
     }
 
-	// Write methods
-    foreach (var path in swagger["paths"].Value<JObject>().Properties())
-    {
-        var getMethod = path.Value["get"];
+    
 
-        if (getMethod == null)
-        {
-            continue;
-        }
-
-        var response = getMethod["responses"]["200"];
-        var schema = response["schema"];
-
-        string name = swaggerHelper.GetMethodNameFromSummary(getMethod["summary"].Value<string>());
-		string type = swaggerHelper.ResolveTypeName(schema);
-
-        List<string> arguments = new List<string>();
-		List<string> argumentsUsage = new List<string>();
-
-		arguments.Add("CancellableAsyncCallback callback");
-
-		foreach (var parameter in getMethod["parameters"].OrderByDescending(token => token["required"].Value<bool>()))
-		{
-		    string argumentName = swaggerHelper.GetNiceArgumentName(parameter["name"].Value<string>());
-
-			string argumentType = swaggerHelper.ResolveBaseTypeName(parameter);
-
-			string argumentUsage = argumentName;
-
-		    if (argumentType != "string")
-		    {
-		        argumentUsage += ".ToString()";
-		    }
-
-		    if (parameter["in"].Value<string>() == "path")
-		    {
-		        argumentUsage = $"resource = resource.Replace(\"{{{parameter["name"]}}}\", {argumentUsage});";
-		    }
-		    else
-		    {
-		        argumentUsage = $"query += \"{parameter["name"]}=\"+{argumentUsage}+\"&\";";
-		    }
-
-			string argumentDefault = string.Empty;
-
-		    if (!parameter["required"].Value<bool>())
-		    {
-		        argumentDefault = " = null";
-
-		        if (argumentType != "string")
-		        {
-		            argumentType = argumentDefault + "?";
-		        }
-
-		        argumentUsage = $"if ({argumentName} != null) " + argumentUsage;
-		    }
-
-            arguments.Add($"{argumentType} {argumentName}{argumentDefault}");
-		    argumentsUsage.Add(argumentUsage);
-		}
-
-		arguments.Add("object state = null");
-
-        writeLine($"/// <summary>{getMethod["description"].Value<string>()}</summary>");
-        writeLine($"public ICancellableAsyncResult Begin{name}({string.Join(", ", arguments)})");
-        openBracket();
-        writeLine($"string resource = \"{path.Name.TrimEnd('?')}\";");
-        writeLine($"string query = string.Empty;");
-        foreach (var argumentUsage in argumentsUsage)
-        {
-            writeLine(argumentUsage);
-        }
-        writeLine($"return BeginApiRequest<{type}>(resource + \"?\" + query, callback, state);");
-        closeBracket();
-        emptyLine();
-
-		writeLine($"public {type} End{name}(IAsyncResult asyncResult)");
-        openBracket();
-        writeLine($"return EndApiRequest<{type}>(asyncResult);");
-        closeBracket();
-        emptyLine();
-    }
-
-    closeBracket();
-    closeBracket();
+    
 #>

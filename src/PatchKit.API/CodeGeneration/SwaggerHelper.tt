@@ -1,5 +1,4 @@
-﻿<#@ template debug="false" hostspecific="true" language="C#" #>
-<#@ assembly name="System.Core" #>
+﻿<#@ assembly name="System.Core" #>
 <#@ assembly name="Newtonsoft.Json.dll" #>
 <#@ import namespace="Newtonsoft.Json.Linq" #>
 <#+
@@ -65,7 +64,7 @@
             return name.Replace(" ", "");
         }
 
-        public string ResolveBaseTypeName(JToken token)
+        public string ResolveBaseType(JToken token)
         {
             var type = token["type"];
 
@@ -100,7 +99,7 @@
             return null;
         }
 
-        public string ResolveTypeName(JToken token)
+        public string ResolveType(JToken token)
         {
             var @ref = token["$ref"];
 
@@ -109,7 +108,7 @@
                 return @ref.Value<string>().Replace("#/definitions/", "");
             }
 
-            var type = ResolveBaseTypeName(token);
+            var type = ResolveBaseType(token);
 
 			if (type == "array")
 			{
@@ -117,7 +116,7 @@
 
 			    if (items != null)
 			    {
-			        return ResolveTypeName(items)+"[]";
+			        return ResolveType(items)+"[]";
 			    }
 			}
 

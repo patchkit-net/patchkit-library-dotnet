@@ -1,0 +1,71 @@
+﻿<#@ assembly name="System.Core" #>
+<#@ import namespace="Microsoft.VisualStudio.TextTemplating" #>
+<#+
+    public class CodeGenerationHelper
+    {
+        private TextTransformation _textTransformation;
+
+        public CodeGenerationHelper(TextTransformation textTransformation)
+        {
+            _textTransformation = textTransformation;
+        }
+
+        private class CodeScope : IDisposable
+        {
+            private readonly Action _onScopeExit;
+
+            public CodeScope(Action onScopeEnter, Action onScopeExit)
+            {
+                onScopeEnter();
+                _onScopeExit = onScopeExit;
+            }
+
+            public void Dispose()
+            {
+                _onScopeExit();
+            }
+        }
+
+        public void PushIndent()
+        {
+            _textTransformation.PushIndent("  ");
+        }
+
+        public void PopIndent()
+        {
+            _textTransformation.PopIndent();
+        }
+
+        public void WriteLine(string str)
+        {
+            _textTransformation.WriteLine(_textTransformation.CurrentIndent + str);
+        }
+
+        public void EmptyLine()
+        {
+            WriteLine("");
+        }
+
+        public void WriteDocsComment(string type, string typeArgs, string content)
+        {
+            string def = $"{type} {typeArgs}".TrimEnd(' ');
+            WriteLine($"/// <{def}>{content}</{type}>");
+        }
+
+        public IDisposable CreateCodeScope(string str)
+        {
+            return new CodeScope(
+                () =>
+                {
+                    WriteLine(str);
+                    WriteLine("{");
+                    PushIndent();
+                },
+                () =>
+                {
+                    PopIndent();
+                    WriteLine("}");
+                });
+        }
+    }
+#>
