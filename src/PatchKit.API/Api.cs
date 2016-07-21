@@ -74,28 +74,28 @@ namespace PatchKit
                 string resourceUrl = url.TrimEnd('/') + "/" + resource.TrimStart('/');
 
                 // Start download of string
-		        var asyncResult = _httpDownloader.BeginDownloadString(resourceUrl,
-		            _connectionSettings.Timeout,
-		            ar =>
-		            {
-                        // Check if request has been completed and not cancelled
-		                if (ar.IsCompleted && !ar.IsCancelled)
-		                {
-                            // Try to get result
-                            try
-                            {
-                                result = _httpDownloader.EndDownloadString(ar);
-                            }
-		                    catch (Exception exception)
-		                    {
-                                // Save the exception
-		                        lastRequestException = exception;
-		                    }
-                        }
-		            });
+		        var asyncResult = _httpDownloader.BeginDownloadString(resourceUrl, _connectionSettings.Timeout);
 
-                // Wait for completion of request
-		        asyncResult.AsyncWaitHandle.WaitOne(_connectionSettings.Timeout);
+		        using (cancellationToken.Register(() => asyncResult.Cancel()))
+		        {
+		            // Wait for completion of request
+		            asyncResult.AsyncWaitHandle.WaitOne(_connectionSettings.Timeout);
+
+		            // Check if request has been completed and not cancelled
+		            if (asyncResult.IsCompleted && !asyncResult.IsCancelled)
+		            {
+		                // Try to get result
+		                try
+		                {
+		                    result = _httpDownloader.EndDownloadString(asyncResult);
+		                }
+		                catch (Exception exception)
+		                {
+		                    // Save the exception
+		                    lastRequestException = exception;
+		                }
+		            }
+		        }
 
 		        if (result != null)
 		        {
