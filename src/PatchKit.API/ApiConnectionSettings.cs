@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
-
-namespace PatchKit
+﻿namespace PatchKit
 {
 	/// <summary>
 	/// <see cref="Api"/> settings.
 	/// </summary>
+	[System.Serializable]
 	public struct ApiConnectionSettings
 	{
 	    public ApiConnectionSettings(int timeout, params string[] urls) : this()
@@ -13,14 +12,14 @@ namespace PatchKit
 	        Timeout = timeout;
 	    }
 
-		/// <summary>
-		/// Urls for API servers. Priority of servers is based on the array order. Must contain at least one url.
-		/// </summary>
-		public IEnumerable<string> Urls { get; set; }
+	    /// <summary>
+	    /// Urls for API servers. Priority of servers is based on the array order. Must contain at least one url.
+	    /// </summary>
+	    public string[] Urls;
 
-		/// <summary>
-		/// Timeout of request to API server. Note that total timeout is calculated by multiplying this value by the amount of <see cref="Urls"/>.
-		/// </summary>
-		public int Timeout { get; set; }
+	    /// <summary>
+	    /// Timeout of request to API server. Note that total timeout is calculated by multiplying this value by the amount of <see cref="Urls"/>.
+	    /// </summary>
+	    public int Timeout;
 	}
 }
