@@ -2,6 +2,7 @@
 
 using System;
 using Newtonsoft.Json;
+using PatchKit.Async;
 namespace PatchKit.Api
 {
     public partial class ApiConnection

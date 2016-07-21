@@ -15,6 +15,7 @@
 
     helper.WriteLine("using System;");
     helper.WriteLine("using Newtonsoft.Json;");
+    helper.WriteLine("using PatchKit.Async;");
     
     using (helper.CreateCodeScope("namespace PatchKit.Api"))
     {
