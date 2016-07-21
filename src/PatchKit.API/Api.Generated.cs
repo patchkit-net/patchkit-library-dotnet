@@ -122,10 +122,10 @@ namespace PatchKit
         }
         
         /// <summary>Gets a complete changelog of an application.</summary>
-        /// <param name="callback">Callback.</param>
         /// <param name="appSecret">Secret of an application.</param>
+        /// <param name="callback">Callback.</param>
         /// <param name="state">Operation state.</param>
-        public ICancellableAsyncResult BeginGetAppChangelog(CancellableAsyncCallback callback, string appSecret, object state = null)
+        public ICancellableAsyncResult BeginGetAppChangelog(string appSecret, CancellableAsyncCallback callback = null, object state = null)
         {
             string resource = "/1/apps/{app_secret}/changelog";
             string query = string.Empty;
@@ -139,11 +139,11 @@ namespace PatchKit
         }
         
         /// <summary>Gets the basic information for all published versions. When API Key is provided, draft version information is included if draft version exists.</summary>
-        /// <param name="callback">Callback.</param>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="apiKey">Application owner API key.</param>
+        /// <param name="callback">Callback.</param>
         /// <param name="state">Operation state.</param>
-        public ICancellableAsyncResult BeginGetAppVersionList(CancellableAsyncCallback callback, string appSecret, string apiKey = null, object state = null)
+        public ICancellableAsyncResult BeginGetAppVersionList(string appSecret, string apiKey = null, CancellableAsyncCallback callback = null, object state = null)
         {
             string resource = "/1/apps/{app_secret}/versions";
             string query = string.Empty;
@@ -158,10 +158,10 @@ namespace PatchKit
         }
         
         /// <summary>Gets latest application version object.</summary>
-        /// <param name="callback">Callback.</param>
         /// <param name="appSecret">Secret of an application.</param>
+        /// <param name="callback">Callback.</param>
         /// <param name="state">Operation state.</param>
-        public ICancellableAsyncResult BeginGetAppLatestAppVersion(CancellableAsyncCallback callback, string appSecret, object state = null)
+        public ICancellableAsyncResult BeginGetAppLatestAppVersion(string appSecret, CancellableAsyncCallback callback = null, object state = null)
         {
             string resource = "/1/apps/{app_secret}/versions/latest";
             string query = string.Empty;
@@ -175,10 +175,10 @@ namespace PatchKit
         }
         
         /// <summary>Gets latest application version id.</summary>
-        /// <param name="callback">Callback.</param>
         /// <param name="appSecret">Secret of an application.</param>
+        /// <param name="callback">Callback.</param>
         /// <param name="state">Operation state.</param>
-        public ICancellableAsyncResult BeginGetAppLatestAppVersionId(CancellableAsyncCallback callback, string appSecret, object state = null)
+        public ICancellableAsyncResult BeginGetAppLatestAppVersionId(string appSecret, CancellableAsyncCallback callback = null, object state = null)
         {
             string resource = "/1/apps/{app_secret}/versions/latest/id";
             string query = string.Empty;
@@ -192,12 +192,12 @@ namespace PatchKit
         }
         
         /// <summary>Gets selected version object. If API key is provided, can get the information about draft version.</summary>
-        /// <param name="callback">Callback.</param>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="versionId">Version id.</param>
         /// <param name="apiKey">Application owner API key.</param>
+        /// <param name="callback">Callback.</param>
         /// <param name="state">Operation state.</param>
-        public ICancellableAsyncResult BeginGetAppVersion(CancellableAsyncCallback callback, string appSecret, int versionId, string apiKey = null, object state = null)
+        public ICancellableAsyncResult BeginGetAppVersion(string appSecret, int versionId, string apiKey = null, CancellableAsyncCallback callback = null, object state = null)
         {
             string resource = "/1/apps/{app_secret}/versions/{version_id}";
             string query = string.Empty;
@@ -213,11 +213,11 @@ namespace PatchKit
         }
         
         /// <summary>Gets selected version content summary.</summary>
-        /// <param name="callback">Callback.</param>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="versionId">Version id.</param>
+        /// <param name="callback">Callback.</param>
         /// <param name="state">Operation state.</param>
-        public ICancellableAsyncResult BeginGetAppVersionContentSummary(CancellableAsyncCallback callback, string appSecret, int versionId, object state = null)
+        public ICancellableAsyncResult BeginGetAppVersionContentSummary(string appSecret, int versionId, CancellableAsyncCallback callback = null, object state = null)
         {
             string resource = "/1/apps/{app_secret}/versions/{version_id}/content_summary";
             string query = string.Empty;
@@ -232,11 +232,11 @@ namespace PatchKit
         }
         
         /// <summary>Gets selected version diff summary.</summary>
-        /// <param name="callback">Callback.</param>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="versionId">Version id.</param>
+        /// <param name="callback">Callback.</param>
         /// <param name="state">Operation state.</param>
-        public ICancellableAsyncResult BeginGetAppVersionDiffSummary(CancellableAsyncCallback callback, string appSecret, int versionId, object state = null)
+        public ICancellableAsyncResult BeginGetAppVersionDiffSummary(string appSecret, int versionId, CancellableAsyncCallback callback = null, object state = null)
         {
             string resource = "/1/apps/{app_secret}/versions/{version_id}/diff_summary";
             string query = string.Empty;
@@ -251,11 +251,11 @@ namespace PatchKit
         }
         
         /// <summary>Gets selected application version content torrent url.</summary>
-        /// <param name="callback">Callback.</param>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="versionId">Version id.</param>
+        /// <param name="callback">Callback.</param>
         /// <param name="state">Operation state.</param>
-        public ICancellableAsyncResult BeginGetAppVersionContentTorrentUrl(CancellableAsyncCallback callback, string appSecret, int versionId, object state = null)
+        public ICancellableAsyncResult BeginGetAppVersionContentTorrentUrl(string appSecret, int versionId, CancellableAsyncCallback callback = null, object state = null)
         {
             string resource = "/1/apps/{app_secret}/versions/{version_id}/content_torrent_url";
             string query = string.Empty;
@@ -270,11 +270,11 @@ namespace PatchKit
         }
         
         /// <summary>Gets selected application version diff torrent url.</summary>
-        /// <param name="callback">Callback.</param>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="versionId">Version id.</param>
+        /// <param name="callback">Callback.</param>
         /// <param name="state">Operation state.</param>
-        public ICancellableAsyncResult BeginGetAppVersionDiffTorrentUrl(CancellableAsyncCallback callback, string appSecret, int versionId, object state = null)
+        public ICancellableAsyncResult BeginGetAppVersionDiffTorrentUrl(string appSecret, int versionId, CancellableAsyncCallback callback = null, object state = null)
         {
             string resource = "/1/apps/{app_secret}/versions/{version_id}/diff_torrent_url";
             string query = string.Empty;
@@ -289,11 +289,11 @@ namespace PatchKit
         }
         
         /// <summary>Gets selected application version content urls.</summary>
-        /// <param name="callback">Callback.</param>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="versionId">Version id.</param>
+        /// <param name="callback">Callback.</param>
         /// <param name="state">Operation state.</param>
-        public ICancellableAsyncResult BeginGetAppVersionContentUrls(CancellableAsyncCallback callback, string appSecret, int versionId, object state = null)
+        public ICancellableAsyncResult BeginGetAppVersionContentUrls(string appSecret, int versionId, CancellableAsyncCallback callback = null, object state = null)
         {
             string resource = "/1/apps/{app_secret}/versions/{version_id}/content_urls";
             string query = string.Empty;
@@ -308,11 +308,11 @@ namespace PatchKit
         }
         
         /// <summary>Gets selected application version diff urls.</summary>
-        /// <param name="callback">Callback.</param>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="versionId">Version id.</param>
+        /// <param name="callback">Callback.</param>
         /// <param name="state">Operation state.</param>
-        public ICancellableAsyncResult BeginGetAppVersionDiffUrls(CancellableAsyncCallback callback, string appSecret, int versionId, object state = null)
+        public ICancellableAsyncResult BeginGetAppVersionDiffUrls(string appSecret, int versionId, CancellableAsyncCallback callback = null, object state = null)
         {
             string resource = "/1/apps/{app_secret}/versions/{version_id}/diff_urls";
             string query = string.Empty;

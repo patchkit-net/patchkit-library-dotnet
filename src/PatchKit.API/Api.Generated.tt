@@ -62,12 +62,9 @@
                 string resourceType = swaggerHelper.ResolveType(schema);
 
                 helper.WriteDocsComment("summary", "", getResource["description"]?.Value<string>());
-                helper.WriteDocsComment("param", "name=\"callback\"", "Callback.");
 
                 var resourceArguments = new List<string>();
                 var resourceArgumentsUsage = new List<string>();
-
-                resourceArguments.Add("CancellableAsyncCallback callback");
 
                 foreach (var argument in getResource["parameters"].OrderByDescending(token => token["required"].Value<bool>()))
                 {
@@ -115,8 +112,10 @@
                     resourceArgumentsUsage.Add(argumentUsage);
                 }
 
+                resourceArguments.Add("CancellableAsyncCallback callback = null");
                 resourceArguments.Add("object state = null");
 
+                helper.WriteDocsComment("param", "name=\"callback\"", "Callback.");
                 helper.WriteDocsComment("param", "name=\"state\"", "Operation state.");
 
                 using (helper.CreateCodeScope(
