@@ -3,7 +3,23 @@
 <#+
     public class CodeGenerationHelper
     {
-        private TextTransformation _textTransformation;
+        public struct MethodArgument
+        {
+            public string Type;
+
+            public string Name;
+
+            public string DefaultValue;
+
+            public string Description;
+
+            public string GetDefinition()
+            {
+                return $"{Type} {Name}" + (string.IsNullOrEmpty(DefaultValue) ? "" : $" = {DefaultValue}");
+            }
+        }
+
+        private readonly TextTransformation _textTransformation;
 
         public CodeGenerationHelper(TextTransformation textTransformation)
         {

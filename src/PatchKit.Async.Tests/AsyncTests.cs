@@ -2,9 +2,8 @@
 using System.Diagnostics;
 using System.Threading;
 using NUnit.Framework;
-using PatchKit;
 
-namespace PatchKitTests
+namespace PatchKit.Async.Tests
 {
     [TestFixture]
     public class AsyncTests

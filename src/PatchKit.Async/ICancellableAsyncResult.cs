@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PatchKit
+namespace PatchKit.Async
 {
 	public interface ICancellableAsyncResult : IAsyncResult
 	{

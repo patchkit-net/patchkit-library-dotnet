@@ -1,4 +1,6 @@
-﻿namespace PatchKit
+﻿using PatchKit.Async;
+
+namespace PatchKit.Api
 {
 	/// <summary>
 	/// Downloading API data through HTTP.

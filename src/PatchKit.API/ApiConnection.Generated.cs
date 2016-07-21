@@ -2,9 +2,9 @@
 
 using System;
 using Newtonsoft.Json;
-namespace PatchKit
+namespace PatchKit.Api
 {
-    public partial class Api
+    public partial class ApiConnection
     {
         public struct Job
         {
@@ -133,9 +133,18 @@ namespace PatchKit
             return BeginApiRequest<object[]>(resource + "?" + query, callback, state);
         }
         
+        /// <summary>Ends request of <see cref="BeginGetAppChangelog"/></summary>
+        /// <param name="asyncResult">Async result.</param>
         public object[] EndGetAppChangelog(IAsyncResult asyncResult)
         {
             return EndApiRequest<object[]>(asyncResult);
+        }
+        
+        /// <summary>Gets a complete changelog of an application.</summary>
+        /// <param name="appSecret">Secret of an application.</param>
+        public object[] GetAppChangelog(string appSecret)
+        {
+            return EndGetAppChangelog(BeginGetAppChangelog(appSecret));
         }
         
         /// <summary>Gets the basic information for all published versions. When API Key is provided, draft version information is included if draft version exists.</summary>
@@ -152,16 +161,26 @@ namespace PatchKit
             return BeginApiRequest<AppVersion[]>(resource + "?" + query, callback, state);
         }
         
+        /// <summary>Ends request of <see cref="BeginGetAppVersionList"/></summary>
+        /// <param name="asyncResult">Async result.</param>
         public AppVersion[] EndGetAppVersionList(IAsyncResult asyncResult)
         {
             return EndApiRequest<AppVersion[]>(asyncResult);
+        }
+        
+        /// <summary>Gets the basic information for all published versions. When API Key is provided, draft version information is included if draft version exists.</summary>
+        /// <param name="appSecret">Secret of an application.</param>
+        /// <param name="apiKey">Application owner API key.</param>
+        public AppVersion[] GetAppVersionList(string appSecret, string apiKey = null)
+        {
+            return EndGetAppVersionList(BeginGetAppVersionList(appSecret, apiKey));
         }
         
         /// <summary>Gets latest application version object.</summary>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="callback">Callback.</param>
         /// <param name="state">Operation state.</param>
-        public ICancellableAsyncResult BeginGetAppLatestAppVersion(string appSecret, CancellableAsyncCallback callback = null, object state = null)
+        public ICancellableAsyncResult BeginGetAppLatestVersion(string appSecret, CancellableAsyncCallback callback = null, object state = null)
         {
             string resource = "/1/apps/{app_secret}/versions/latest";
             string query = string.Empty;
@@ -169,16 +188,25 @@ namespace PatchKit
             return BeginApiRequest<AppVersion>(resource + "?" + query, callback, state);
         }
         
-        public AppVersion EndGetAppLatestAppVersion(IAsyncResult asyncResult)
+        /// <summary>Ends request of <see cref="BeginGetAppLatestVersion"/></summary>
+        /// <param name="asyncResult">Async result.</param>
+        public AppVersion EndGetAppLatestVersion(IAsyncResult asyncResult)
         {
             return EndApiRequest<AppVersion>(asyncResult);
+        }
+        
+        /// <summary>Gets latest application version object.</summary>
+        /// <param name="appSecret">Secret of an application.</param>
+        public AppVersion GetAppLatestVersion(string appSecret)
+        {
+            return EndGetAppLatestVersion(BeginGetAppLatestVersion(appSecret));
         }
         
         /// <summary>Gets latest application version id.</summary>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="callback">Callback.</param>
         /// <param name="state">Operation state.</param>
-        public ICancellableAsyncResult BeginGetAppLatestAppVersionId(string appSecret, CancellableAsyncCallback callback = null, object state = null)
+        public ICancellableAsyncResult BeginGetAppLatestVersionId(string appSecret, CancellableAsyncCallback callback = null, object state = null)
         {
             string resource = "/1/apps/{app_secret}/versions/latest/id";
             string query = string.Empty;
@@ -186,9 +214,18 @@ namespace PatchKit
             return BeginApiRequest<AppVersionId>(resource + "?" + query, callback, state);
         }
         
-        public AppVersionId EndGetAppLatestAppVersionId(IAsyncResult asyncResult)
+        /// <summary>Ends request of <see cref="BeginGetAppLatestVersionId"/></summary>
+        /// <param name="asyncResult">Async result.</param>
+        public AppVersionId EndGetAppLatestVersionId(IAsyncResult asyncResult)
         {
             return EndApiRequest<AppVersionId>(asyncResult);
+        }
+        
+        /// <summary>Gets latest application version id.</summary>
+        /// <param name="appSecret">Secret of an application.</param>
+        public AppVersionId GetAppLatestVersionId(string appSecret)
+        {
+            return EndGetAppLatestVersionId(BeginGetAppLatestVersionId(appSecret));
         }
         
         /// <summary>Gets selected version object. If API key is provided, can get the information about draft version.</summary>
@@ -207,9 +244,20 @@ namespace PatchKit
             return BeginApiRequest<AppVersion>(resource + "?" + query, callback, state);
         }
         
+        /// <summary>Ends request of <see cref="BeginGetAppVersion"/></summary>
+        /// <param name="asyncResult">Async result.</param>
         public AppVersion EndGetAppVersion(IAsyncResult asyncResult)
         {
             return EndApiRequest<AppVersion>(asyncResult);
+        }
+        
+        /// <summary>Gets selected version object. If API key is provided, can get the information about draft version.</summary>
+        /// <param name="appSecret">Secret of an application.</param>
+        /// <param name="versionId">Version id.</param>
+        /// <param name="apiKey">Application owner API key.</param>
+        public AppVersion GetAppVersion(string appSecret, int versionId, string apiKey = null)
+        {
+            return EndGetAppVersion(BeginGetAppVersion(appSecret, versionId, apiKey));
         }
         
         /// <summary>Gets selected version content summary.</summary>
@@ -226,9 +274,19 @@ namespace PatchKit
             return BeginApiRequest<AppContentSummary>(resource + "?" + query, callback, state);
         }
         
+        /// <summary>Ends request of <see cref="BeginGetAppVersionContentSummary"/></summary>
+        /// <param name="asyncResult">Async result.</param>
         public AppContentSummary EndGetAppVersionContentSummary(IAsyncResult asyncResult)
         {
             return EndApiRequest<AppContentSummary>(asyncResult);
+        }
+        
+        /// <summary>Gets selected version content summary.</summary>
+        /// <param name="appSecret">Secret of an application.</param>
+        /// <param name="versionId">Version id.</param>
+        public AppContentSummary GetAppVersionContentSummary(string appSecret, int versionId)
+        {
+            return EndGetAppVersionContentSummary(BeginGetAppVersionContentSummary(appSecret, versionId));
         }
         
         /// <summary>Gets selected version diff summary.</summary>
@@ -245,9 +303,19 @@ namespace PatchKit
             return BeginApiRequest<AppDiffSummary>(resource + "?" + query, callback, state);
         }
         
+        /// <summary>Ends request of <see cref="BeginGetAppVersionDiffSummary"/></summary>
+        /// <param name="asyncResult">Async result.</param>
         public AppDiffSummary EndGetAppVersionDiffSummary(IAsyncResult asyncResult)
         {
             return EndApiRequest<AppDiffSummary>(asyncResult);
+        }
+        
+        /// <summary>Gets selected version diff summary.</summary>
+        /// <param name="appSecret">Secret of an application.</param>
+        /// <param name="versionId">Version id.</param>
+        public AppDiffSummary GetAppVersionDiffSummary(string appSecret, int versionId)
+        {
+            return EndGetAppVersionDiffSummary(BeginGetAppVersionDiffSummary(appSecret, versionId));
         }
         
         /// <summary>Gets selected application version content torrent url.</summary>
@@ -264,9 +332,19 @@ namespace PatchKit
             return BeginApiRequest<AppContentTorrentUrl>(resource + "?" + query, callback, state);
         }
         
+        /// <summary>Ends request of <see cref="BeginGetAppVersionContentTorrentUrl"/></summary>
+        /// <param name="asyncResult">Async result.</param>
         public AppContentTorrentUrl EndGetAppVersionContentTorrentUrl(IAsyncResult asyncResult)
         {
             return EndApiRequest<AppContentTorrentUrl>(asyncResult);
+        }
+        
+        /// <summary>Gets selected application version content torrent url.</summary>
+        /// <param name="appSecret">Secret of an application.</param>
+        /// <param name="versionId">Version id.</param>
+        public AppContentTorrentUrl GetAppVersionContentTorrentUrl(string appSecret, int versionId)
+        {
+            return EndGetAppVersionContentTorrentUrl(BeginGetAppVersionContentTorrentUrl(appSecret, versionId));
         }
         
         /// <summary>Gets selected application version diff torrent url.</summary>
@@ -283,9 +361,19 @@ namespace PatchKit
             return BeginApiRequest<AppDiffTorrentUrl>(resource + "?" + query, callback, state);
         }
         
+        /// <summary>Ends request of <see cref="BeginGetAppVersionDiffTorrentUrl"/></summary>
+        /// <param name="asyncResult">Async result.</param>
         public AppDiffTorrentUrl EndGetAppVersionDiffTorrentUrl(IAsyncResult asyncResult)
         {
             return EndApiRequest<AppDiffTorrentUrl>(asyncResult);
+        }
+        
+        /// <summary>Gets selected application version diff torrent url.</summary>
+        /// <param name="appSecret">Secret of an application.</param>
+        /// <param name="versionId">Version id.</param>
+        public AppDiffTorrentUrl GetAppVersionDiffTorrentUrl(string appSecret, int versionId)
+        {
+            return EndGetAppVersionDiffTorrentUrl(BeginGetAppVersionDiffTorrentUrl(appSecret, versionId));
         }
         
         /// <summary>Gets selected application version content urls.</summary>
@@ -302,9 +390,19 @@ namespace PatchKit
             return BeginApiRequest<AppContentUrl[]>(resource + "?" + query, callback, state);
         }
         
+        /// <summary>Ends request of <see cref="BeginGetAppVersionContentUrls"/></summary>
+        /// <param name="asyncResult">Async result.</param>
         public AppContentUrl[] EndGetAppVersionContentUrls(IAsyncResult asyncResult)
         {
             return EndApiRequest<AppContentUrl[]>(asyncResult);
+        }
+        
+        /// <summary>Gets selected application version content urls.</summary>
+        /// <param name="appSecret">Secret of an application.</param>
+        /// <param name="versionId">Version id.</param>
+        public AppContentUrl[] GetAppVersionContentUrls(string appSecret, int versionId)
+        {
+            return EndGetAppVersionContentUrls(BeginGetAppVersionContentUrls(appSecret, versionId));
         }
         
         /// <summary>Gets selected application version diff urls.</summary>
@@ -321,9 +419,19 @@ namespace PatchKit
             return BeginApiRequest<AppDiffUrl[]>(resource + "?" + query, callback, state);
         }
         
+        /// <summary>Ends request of <see cref="BeginGetAppVersionDiffUrls"/></summary>
+        /// <param name="asyncResult">Async result.</param>
         public AppDiffUrl[] EndGetAppVersionDiffUrls(IAsyncResult asyncResult)
         {
             return EndApiRequest<AppDiffUrl[]>(asyncResult);
+        }
+        
+        /// <summary>Gets selected application version diff urls.</summary>
+        /// <param name="appSecret">Secret of an application.</param>
+        /// <param name="versionId">Version id.</param>
+        public AppDiffUrl[] GetAppVersionDiffUrls(string appSecret, int versionId)
+        {
+            return EndGetAppVersionDiffUrls(BeginGetAppVersionDiffUrls(appSecret, versionId));
         }
         
     }

@@ -7,7 +7,7 @@
     <ProjectGuid>{DD528322-587D-4F9E-926B-9A8A5EE6D12B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PatchKitTests</RootNamespace>
+    <RootNamespace>PatchKit.Async.Tests</RootNamespace>
     <AssemblyName>PatchKit.Async.Tests</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

@@ -4,11 +4,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("PatchKit.API")]
+[assembly: AssemblyTitle("PatchKit.Api")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("UpSoft")]
-[assembly: AssemblyProduct("PatchKit.API")]
+[assembly: AssemblyProduct("PatchKit.Api")]
 [assembly: AssemblyCopyright("Copyright © UpSoft 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

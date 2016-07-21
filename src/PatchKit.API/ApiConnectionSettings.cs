@@ -1,7 +1,7 @@
-﻿namespace PatchKit
+﻿namespace PatchKit.Api
 {
 	/// <summary>
-	/// <see cref="Api"/> settings.
+	/// <see cref="ApiConnection"/> settings.
 	/// </summary>
 	[System.Serializable]
 	public struct ApiConnectionSettings

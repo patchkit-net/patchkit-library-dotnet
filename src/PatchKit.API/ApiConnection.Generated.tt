@@ -16,9 +16,9 @@
     helper.WriteLine("using System;");
     helper.WriteLine("using Newtonsoft.Json;");
     
-    using (helper.CreateCodeScope("namespace PatchKit"))
+    using (helper.CreateCodeScope("namespace PatchKit.Api"))
     {
-        using (helper.CreateCodeScope("public partial class Api"))
+        using (helper.CreateCodeScope("public partial class ApiConnection"))
         {
             // Write struct definitions
             foreach (var definition in swagger["definitions"].Value<JObject>().Properties())
@@ -61,69 +61,72 @@
                 string resourceName = swaggerHelper.GetMethodNameFromSummary(getResource["summary"].Value<string>());
                 string resourceType = swaggerHelper.ResolveType(schema);
 
-                helper.WriteDocsComment("summary", "", getResource["description"]?.Value<string>());
-
-                var resourceArguments = new List<string>();
-                var resourceArgumentsUsage = new List<string>();
+                var resourceArguments = new List<CodeGenerationHelper.MethodArgument>();
+                var resourceArgumentsFormatCode = new List<string>();
 
                 foreach (var argument in getResource["parameters"].OrderByDescending(token => token["required"].Value<bool>()))
                 {
-                    string argumentName = swaggerHelper.GetNiceArgumentName(argument["name"].Value<string>());
+                    var methodArgument = new CodeGenerationHelper.MethodArgument();
 
-                    string argumentType = swaggerHelper.ResolveBaseType(argument);
+                    methodArgument.Name = swaggerHelper.GetNiceArgumentName(argument["name"].Value<string>());
 
-                    string argumentUsage = argumentName;
+                    methodArgument.Type = swaggerHelper.ResolveBaseType(argument);
 
-                    if (argumentType != "string")
+                    string argumentFormatCode = methodArgument.Name;
+
+                    if (methodArgument.Type != "string")
                     {
-                        argumentUsage += ".ToString()";
+                        argumentFormatCode += ".ToString()";
                     }
 
                     if (argument["in"].Value<string>() == "path")
                     {
-                        argumentUsage = $"resource = resource.Replace(\"{{{argument["name"]}}}\", {argumentUsage});";
+                        argumentFormatCode = $"resource = resource.Replace(\"{{{argument["name"]}}}\", {argumentFormatCode});";
                     }
                     else if (argument["in"].Value<string>() == "query")
                     {
-                        argumentUsage = $"query += \"{argument["name"]}=\"+{argumentUsage}+\"&\";";
+                        argumentFormatCode = $"query += \"{argument["name"]}=\"+{argumentFormatCode}+\"&\";";
                     }
                     else
                     {
                         continue;
                     }
 
-                    string argumentDefault = string.Empty;
+                    methodArgument.DefaultValue = null;
 
                     if (!argument["required"].Value<bool>())
                     {
-                        argumentDefault = " = null";
+                        methodArgument.DefaultValue = "null";
 
-                        if (argumentType != "string")
+                        if (methodArgument.Type != "string")
                         {
-                            argumentType = argumentDefault + "?";
+                            methodArgument.Type = methodArgument.Type + "?";
                         }
 
-                        argumentUsage = $"if ({argumentName} != null) " + argumentUsage;
+                        argumentFormatCode = $"if ({methodArgument.Name} != null) " + argumentFormatCode;
                     }
 
-                    helper.WriteDocsComment($"param", $"name=\"{argumentName}\"", argument["description"]?.Value<string>());
+                    methodArgument.Description = argument["description"]?.Value<string>() ?? string.Empty;
 
-                    resourceArguments.Add($"{argumentType} {argumentName}{argumentDefault}");
-                    resourceArgumentsUsage.Add(argumentUsage);
+                    resourceArguments.Add(methodArgument);
+                    resourceArgumentsFormatCode.Add(argumentFormatCode);
                 }
 
-                resourceArguments.Add("CancellableAsyncCallback callback = null");
-                resourceArguments.Add("object state = null");
-
+                helper.WriteDocsComment("summary", "", getResource["description"]?.Value<string>());
+                foreach (var argument in resourceArguments)
+                {
+                    helper.WriteDocsComment("param", $"name=\"{argument.Name}\"", argument.Description);
+                }
                 helper.WriteDocsComment("param", "name=\"callback\"", "Callback.");
                 helper.WriteDocsComment("param", "name=\"state\"", "Operation state.");
 
+                
                 using (helper.CreateCodeScope(
-                        $"public ICancellableAsyncResult Begin{resourceName}({string.Join(", ", resourceArguments)})"))
+                        $"public ICancellableAsyncResult Begin{resourceName}({string.Join(", ", resourceArguments.Select(argument => argument.GetDefinition()))}, CancellableAsyncCallback callback = null, object state = null)"))
                 {
                     helper.WriteLine($"string resource = \"{resource.Name.TrimEnd('?')}\";");
                     helper.WriteLine($"string query = string.Empty;");
-                    foreach (var usage in resourceArgumentsUsage)
+                    foreach (var usage in resourceArgumentsFormatCode)
                     {
                         helper.WriteLine(usage);
                     }
@@ -132,9 +135,23 @@
 
                 helper.EmptyLine();
 
+                helper.WriteDocsComment("summary", "", $"Ends request of <see cref=\"Begin{resourceName}\"/>");
+                helper.WriteDocsComment("param", "name=\"asyncResult\"", "Async result.");
                 using (helper.CreateCodeScope($"public {resourceType} End{resourceName}(IAsyncResult asyncResult)"))
                 {
                     helper.WriteLine($"return EndApiRequest<{resourceType}>(asyncResult);");
+                }
+
+                helper.EmptyLine();
+
+                helper.WriteDocsComment("summary", "", getResource["description"]?.Value<string>());
+                foreach (var argument in resourceArguments)
+                {
+                    helper.WriteDocsComment("param", $"name=\"{argument.Name}\"", argument.Description);
+                }
+                using (helper.CreateCodeScope($"public {resourceType} {resourceName}({string.Join(", ", resourceArguments.Select(argument => argument.GetDefinition()))})"))
+                {
+                    helper.WriteLine($"return End{resourceName}(Begin{resourceName}({string.Join(", ", resourceArguments.Select(argument => argument.Name))}));");
                 }
 
                 helper.EmptyLine();

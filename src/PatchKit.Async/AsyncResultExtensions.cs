@@ -1,7 +1,7 @@
 ﻿using System;
 using JetBrains.Annotations;
 
-namespace PatchKit
+namespace PatchKit.Async
 {
     public static class AsyncResultExtensions
     {

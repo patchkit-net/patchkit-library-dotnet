@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PatchKit.API", "PatchKit.API\PatchKit.API.csproj", "{A4FE22C5-A246-493D-B07D-A385305D4177}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PatchKit.Api", "PatchKit.API\PatchKit.Api.csproj", "{A4FE22C5-A246-493D-B07D-A385305D4177}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PatchKit.Async", "PatchKit.Async\PatchKit.Async.csproj", "{B0FE047F-6424-4D52-AEEB-562C5E21E987}"
 EndProject

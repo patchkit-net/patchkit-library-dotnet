@@ -153,7 +153,7 @@
         },
         "/1/apps/{app_secret}/versions/latest": {
             "get": {
-                "summary": "Gets app latest app version",
+                "summary": "Gets app latest version",
                 "description": "Gets latest application version object.",
                 "parameters": [
                     {
@@ -176,7 +176,7 @@
         },
         "/1/apps/{app_secret}/versions/latest/id": {
             "get": {
-                "summary": "Gets app latest app version id",
+                "summary": "Gets app latest version id",
                 "description": "Gets latest application version id.",
                 "parameters": [
                     {

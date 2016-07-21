@@ -1,4 +1,4 @@
-﻿namespace PatchKit
+﻿namespace PatchKit.Api
 {
 	public struct ApiHttpResult
 	{

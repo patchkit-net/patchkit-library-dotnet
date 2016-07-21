@@ -1,4 +1,4 @@
-﻿namespace PatchKit
+﻿namespace PatchKit.Async
 {
     /// <summary>
     /// Delegate for cancellable async operation.

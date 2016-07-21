@@ -2,19 +2,20 @@
 using System.Net;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using PatchKit.Async;
 
-namespace PatchKit
+namespace PatchKit.Api
 {
     /// <summary>
     /// PatchKit Api provider.
     /// </summary>
-	public sealed partial class Api
+	public sealed partial class ApiConnection
     {
         private readonly IApiHttpDownloader _httpDownloader;
 
 		private readonly ApiConnectionSettings _connectionSettings;
 
-		public Api(ApiConnectionSettings connectionSettings, [NotNull] IApiHttpDownloader httpDownloader)
+		public ApiConnection(ApiConnectionSettings connectionSettings, [NotNull] IApiHttpDownloader httpDownloader)
         {
             if (connectionSettings.Urls == null)
             {
@@ -33,11 +34,11 @@ namespace PatchKit
             _httpDownloader = httpDownloader;
         }
 
-        public Api(ApiConnectionSettings connectionSettings) : this(connectionSettings, new ApiHttpDownloader())
+        public ApiConnection(ApiConnectionSettings connectionSettings) : this(connectionSettings, new ApiHttpDownloader())
         {
         }
 
-        public Api() : this(new ApiConnectionSettings(500, "http://api.patchkit.net"))
+        public ApiConnection() : this(new ApiConnectionSettings(500, "http://api.patchkit.net"))
         {
         }
 

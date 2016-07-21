@@ -2,7 +2,7 @@
 using System.Threading;
 using JetBrains.Annotations;
 
-namespace PatchKit
+namespace PatchKit.Async
 {
     /// <summary>
     /// Asynchronus operation result.

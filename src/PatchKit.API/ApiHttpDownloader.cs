@@ -3,7 +3,9 @@ using System.IO;
 using System.Net;
 using System.Text;
 using JetBrains.Annotations;
-namespace PatchKit
+using PatchKit.Async;
+
+namespace PatchKit.Api
 {
     /// <summary>
     /// Implementation of <see cref="IApiHttpDownloader"/>.
