@@ -1,4 +1,4 @@
 # patchkit-library-dotnet
-PatchKit .NET Library
+PatchKit .NET library.
 
 Read about it [here](http://docs.patchkit.net/).
