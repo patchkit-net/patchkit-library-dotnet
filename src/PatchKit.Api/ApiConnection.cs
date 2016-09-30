@@ -182,29 +182,5 @@ namespace PatchKit.Api
 
             return apiResponse;
         }
-
-        /// <summary>
-        /// Retrieves specified resource from API.
-        /// </summary>
-        /// <param name="path">The path to the resource.</param>
-        /// <param name="query">The query of the resource.</param>
-        /// <param name="onSuccess">Callback when request was successful.</param>
-        /// <param name="onFailed">Callback when request failed.</param>
-        /// <returns>Resource result.</returns>
-        public void GetAsync(string path, string query, Action<IApiResponse> onSuccess, Action<Exception> onFailed)
-        {
-            ThreadPool.QueueUserWorkItem(state =>
-            {
-                try
-                {
-                    var response = Get(path, query);
-                    onSuccess(response);
-                }
-                catch (Exception exception)
-                {
-                    onFailed(exception);
-                }
-            });
-        }
     }
 }
