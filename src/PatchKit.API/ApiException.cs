@@ -10,7 +10,7 @@ namespace PatchKit.Api
         /// <summary>
         /// API status code.
         /// </summary>
-        public readonly int StatusCode;
+        public int StatusCode { get; private set; }
 
         internal ApiException(string message, int statusCode) : base(message)
         {

@@ -25,10 +25,8 @@
     <DisableCodeBlockComponent>False</DisableCodeBlockComponent>
     <CleanIntermediates>True</CleanIntermediates>
     <DocumentationSources>
-      <DocumentationSource sourceFile="..\src\PatchKit.API\bin\Release\PatchKit.Api.xml" />
-<DocumentationSource sourceFile="..\src\PatchKit.API\bin\Release\PatchKit.Api.dll" />
-<DocumentationSource sourceFile="..\src\PatchKit.Async\bin\Release\PatchKit.Async.xml" />
-<DocumentationSource sourceFile="..\src\PatchKit.Async\bin\Release\PatchKit.Async.dll" /></DocumentationSources>
+      <DocumentationSource sourceFile="..\src\PatchKit.sln" />
+    </DocumentationSources>
     <HelpFileVersion>1.0.0.0</HelpFileVersion>
     <MaximumGroupParts>6</MaximumGroupParts>
     <NamespaceGrouping>False</NamespaceGrouping>

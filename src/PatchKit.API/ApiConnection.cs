@@ -1,117 +1,210 @@
 ﻿using System;
 using System.Net;
-using JetBrains.Annotations;
-using Newtonsoft.Json;
-using PatchKit.Async;
+using System.Threading;
 
 namespace PatchKit.Api
 {
     /// <summary>
-    /// PatchKit Api provider.
+    /// PatchKit Api Connection.
     /// </summary>
-	public sealed partial class ApiConnection
+    public sealed class ApiConnection
     {
-        private readonly IApiHttpDownloader _httpDownloader;
+        private readonly ApiConnectionSettings _connectionSettings;
 
-		private readonly ApiConnectionSettings _connectionSettings;
-
-		public ApiConnection(ApiConnectionSettings connectionSettings, [NotNull] IApiHttpDownloader httpDownloader)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ApiConnection"/> class.
+        /// </summary>
+        /// <param name="connectionSettings">The connection settings.</param>
+        /// <exception cref="System.ArgumentNullException">
+        /// connectionSettings - Url to main server is null.
+        /// or
+        /// connectionSettings - Url to main server is empty.
+        /// </exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">
+        /// connectionSettings - Invalid minimum timeout (must be between 1 and Infinite).
+        /// or
+        /// connectionSettings - Invalid maximum timeout (must be between minimum timeout and Infinite).
+        /// </exception>
+        public ApiConnection(ApiConnectionSettings connectionSettings)
         {
-            if (connectionSettings.Urls == null)
+            if (connectionSettings.MainServer == null)
             {
-                throw new ArgumentNullException("connectionSettings", "Empty url list in connection settings.");
+                throw new ArgumentNullException("connectionSettings", "Url to main server is null.");
             }
-            if (connectionSettings.Timeout <= 0)
+            if (string.IsNullOrEmpty(connectionSettings.MainServer))
             {
-                throw new ArgumentOutOfRangeException("connectionSettings", "Invaild timeout (must be between 1 and Infinite).");
+                throw new ArgumentNullException("connectionSettings", "Url to main server is empty.");
             }
-            if (httpDownloader == null)
+            if (connectionSettings.MinimumTimeout <= 0)
             {
-                throw new ArgumentNullException("httpDownloader");
+                throw new ArgumentOutOfRangeException("connectionSettings",
+                    "Invalid minimum timeout (must be between 1 and Infinite).");
+            }
+            if (connectionSettings.MaximumTimeout <= 0 ||
+                connectionSettings.MaximumTimeout < connectionSettings.MinimumTimeout)
+            {
+                throw new ArgumentOutOfRangeException("connectionSettings",
+                    "Invalid maximum timeout (must be between minimum timeout and Infinite).");
             }
 
             _connectionSettings = connectionSettings;
-            _httpDownloader = httpDownloader;
         }
 
-        public ApiConnection(ApiConnectionSettings connectionSettings) : this(connectionSettings, new ApiHttpDownloader())
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ApiConnection"/> class.
+        /// </summary>
+        public ApiConnection() : this(new ApiConnectionSettings())
         {
         }
 
-        public ApiConnection() : this(new ApiConnectionSettings(500, "http://api.patchkit.net"))
+        private IApiResponse GetFromServer(string host, string path, int timeout, string query)
         {
-        }
-
-        private ICancellableAsyncResult BeginApiRequest<T>(string resource, CancellableAsyncCallback callback, object state)
-		{
-			var result = new AsyncResult<T> (cancellationToken => ApiRequest<T>(resource, cancellationToken), callback, state);
-
-			return result;
-		}
-
-        private T EndApiRequest<T>(IAsyncResult asyncResult)
-        {
-            var result = asyncResult as AsyncResult<T>;
-
-            if (result == null)
+            Uri uri = new UriBuilder
             {
-                throw new ArgumentException("asyncResult");
+                Host = host,
+                Path = path,
+                Query = query
+            }.Uri;
+
+            var httpRequest = WebRequest.Create(uri) as HttpWebRequest;
+
+            if (httpRequest == null)
+            {
+                throw new FormatException(string.Format("Invaild API uri - {0}", uri));
             }
 
-            return result.FetchResultsFromAsyncOperation();
+            httpRequest.Timeout = timeout;
+
+            var response = (HttpWebResponse) httpRequest.GetResponse();
+
+            if (response.StatusCode == HttpStatusCode.InternalServerError)
+            {
+                throw new WebException(response.StatusDescription);
+            }
+
+            return new ApiResponse(response);
         }
 
-		private T ApiRequest<T>(string resource, AsyncCancellationToken cancellationToken)
-		{
-            // We want to save at least last request exception
-            // TODO: Use some kind of AggregateException for it (sadly it's not available for .NET 3.5)
-            Exception lastRequestException = null;
+        private bool TryGetFromServer(string host, string path, string query, int timeout, out IApiResponse apiResponse)
+        {
+            apiResponse = null;
 
-            foreach (var url in _connectionSettings.Urls)
-		    {
-                ApiHttpResult? result = null;
+            try
+            {
+                apiResponse = GetFromServer(host, path, timeout, query);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
-                // Join url with resource path and make sure that they are joined by only one '/' char
-                string resourceUrl = url.TrimEnd('/') + "/" + resource.TrimStart('/');
+        bool IsGetResponseValid(IApiResponse apiResponse)
+        {
+            if ((int) apiResponse.HttpWebResponse.StatusCode >= 400)
+            {
+                return false;
+            }
 
-                // Start download of string
-		        var asyncResult = _httpDownloader.BeginDownloadString(resourceUrl, _connectionSettings.Timeout);
+            return true;
+        }
 
-		        using (cancellationToken.Register(() => asyncResult.Cancel()))
-		        {
-		            // Wait for completion of request
-		            asyncResult.AsyncWaitHandle.WaitOne(_connectionSettings.Timeout);
-
-		            // Check if request has been completed and not cancelled
-		            if (asyncResult.IsCompleted && !asyncResult.IsCancelled)
-		            {
-		                // Try to get result
-		                try
-		                {
-		                    result = _httpDownloader.EndDownloadString(asyncResult);
-		                }
-		                catch (Exception exception)
-		                {
-		                    // Save the exception
-		                    lastRequestException = exception;
-		                }
-		            }
-		        }
-
-		        if (result != null)
-		        {
-                    // Validate status code
-		            if (result.Value.StatusCode != 200)
-		            {
-		                throw new ApiException("Invaild API response.", result.Value.StatusCode);
-		            }
-
-                    // Deserialize response content.
-                    return JsonConvert.DeserializeObject<T>(result.Value.Value);
+        private bool TryGetFromCacheServer(string host, string path, string query, int timeout,
+            out IApiResponse apiResponse)
+        {
+            if (TryGetFromServer(host, path, query, timeout, out apiResponse))
+            {
+                if (IsGetResponseValid(apiResponse))
+                {
+                    return true;
                 }
-		    }
+            }
 
-		    throw new WebException("Unable to download API resource.", lastRequestException);
-		}
+            return false;
+        }
+
+        private bool TryGetFromMainServer(string path, string query, int timeout, out IApiResponse apiResponse)
+        {
+            if (TryGetFromServer(_connectionSettings.MainServer, path, query, timeout, out apiResponse))
+            {
+                if (!IsGetResponseValid(apiResponse))
+                {
+                    throw new ApiException(apiResponse.HttpWebResponse.StatusDescription,
+                        (int) apiResponse.HttpWebResponse.StatusCode);
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryGet(string path, string query, int timeout, out IApiResponse apiResponse)
+        {
+            if (TryGetFromMainServer(path, query, timeout, out apiResponse))
+            {
+                return true;
+            }
+
+            if (_connectionSettings.CacheServers != null)
+            {
+                foreach (var cacheServer in _connectionSettings.CacheServers)
+                {
+                    if (TryGetFromCacheServer(cacheServer, path, query, timeout, out apiResponse))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Retrieves specified resource from API.
+        /// </summary>
+        /// <param name="path">The path to the resource.</param>
+        /// <param name="query">The query of the resource.</param>
+        /// <returns>Resource result.</returns>
+        /// <exception cref="System.TimeoutException">API request has timed out.</exception>
+        public IApiResponse Get(string path, string query)
+        {
+            IApiResponse apiResponse;
+
+            if (!TryGet(path, query, _connectionSettings.MinimumTimeout, out apiResponse))
+            {
+                if (!TryGet(path, query, _connectionSettings.MaximumTimeout, out apiResponse))
+                {
+                    throw new TimeoutException("API request has timed out.");
+                }
+            }
+
+            return apiResponse;
+        }
+
+        /// <summary>
+        /// Retrieves specified resource from API.
+        /// </summary>
+        /// <param name="path">The path to the resource.</param>
+        /// <param name="query">The query of the resource.</param>
+        /// <param name="onSuccess">Callback when request was successful.</param>
+        /// <param name="onFailed">Callback when request failed.</param>
+        /// <returns>Resource result.</returns>
+        public void GetAsync(string path, string query, Action<IApiResponse> onSuccess, Action<Exception> onFailed)
+        {
+            ThreadPool.QueueUserWorkItem(state =>
+            {
+                try
+                {
+                    var response = Get(path, query);
+                    onSuccess(response);
+                }
+                catch (Exception exception)
+                {
+                    onFailed(exception);
+                }
+            });
+        }
     }
 }
