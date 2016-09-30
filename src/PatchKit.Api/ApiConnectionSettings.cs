@@ -10,19 +10,17 @@ namespace PatchKit.Api
     public struct ApiConnectionSettings
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ApiConnectionSettings"/> struct.
+        /// Returns default settings.
         /// </summary>
-        /// <param name="mainServer">Url to main server.</param>
-        /// <param name="cacheServers">Urls to cache servers.</param>
-        /// <param name="minimumTimeout">The minimum timeout.</param>
-        /// <param name="maximumTimeout">The maximum timeout.</param>
-        public ApiConnectionSettings([NotNull] string mainServer = "http://api.patchkit.net", [CanBeNull] string[] cacheServers = null, int minimumTimeout = 5000,
-            int maximumTimeout = 10000) : this()
+        public static ApiConnectionSettings CreateDefault()
         {
-            MainServer = mainServer;
-            CacheServers = cacheServers;
-            MinimumTimeout = minimumTimeout;
-            MaximumTimeout = maximumTimeout;
+            return new ApiConnectionSettings
+            {
+                MainServer = "http://api.patchkit.net",
+                CacheServers = null,
+                MinimumTimeout = 5000,
+                MaximumTimeout = 10000
+            };
         }
 
         /// <summary>

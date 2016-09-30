@@ -53,7 +53,7 @@ namespace PatchKit.Api
         /// <summary>
         /// Initializes a new instance of the <see cref="ApiConnection"/> class.
         /// </summary>
-        public ApiConnection() : this(new ApiConnectionSettings())
+        public ApiConnection() : this(ApiConnectionSettings.CreateDefault())
         {
         }
 
