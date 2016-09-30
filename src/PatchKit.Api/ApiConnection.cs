@@ -56,16 +56,35 @@ namespace PatchKit.Api
         {
         }
 
-        private IApiResponse GetFromServer(string host, string path, int timeout, string query)
+        bool IsResponseValid(IApiResponse apiResponse)
+        {
+            if ((int)apiResponse.HttpWebResponse.StatusCode >= 400)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        void ThrowIfResponseNotValid(IApiResponse apiResponse)
+        {
+            if (!IsResponseValid(apiResponse))
+            {
+                throw new ApiResponseException((int)apiResponse.HttpWebResponse.StatusCode);
+            }
+        }
+
+        private bool TryGetFromServer(string host, string path, string query, int timeout, out IApiResponse apiResponse)
         {
             Uri uri = new UriBuilder
             {
+                Scheme = "http",
                 Host = host,
                 Path = path,
                 Query = query
             }.Uri;
 
-            var httpRequest = WebRequest.Create(uri) as HttpWebRequest;
+            var httpRequest = WebRequest.Create(uri.ToString()) as HttpWebRequest;
 
             if (httpRequest == null)
             {
@@ -74,39 +93,29 @@ namespace PatchKit.Api
 
             httpRequest.Timeout = timeout;
 
-            var response = (HttpWebResponse) httpRequest.GetResponse();
-
-            if (response.StatusCode == HttpStatusCode.InternalServerError)
-            {
-                throw new WebException(response.StatusDescription);
-            }
-
-            return new ApiResponse(response);
-        }
-
-        private bool TryGetFromServer(string host, string path, string query, int timeout, out IApiResponse apiResponse)
-        {
             apiResponse = null;
 
             try
             {
-                apiResponse = GetFromServer(host, path, timeout, query);
+                var response = (HttpWebResponse)httpRequest.GetResponse();
+
+                if (response.StatusCode == HttpStatusCode.InternalServerError)
+                {
+                    return false;
+                }
+
+                apiResponse = new ApiResponse(response);
+
                 return true;
             }
-            catch
+            catch (WebException webException)
             {
-                return false;
+                if (webException.Status == WebExceptionStatus.Timeout)
+                {
+                    return false;
+                }
+                throw;
             }
-        }
-
-        bool IsGetResponseValid(IApiResponse apiResponse)
-        {
-            if ((int) apiResponse.HttpWebResponse.StatusCode >= 400)
-            {
-                return false;
-            }
-
-            return true;
         }
 
         private bool TryGetFromCacheServer(string host, string path, string query, int timeout,
@@ -114,7 +123,7 @@ namespace PatchKit.Api
         {
             if (TryGetFromServer(host, path, query, timeout, out apiResponse))
             {
-                if (IsGetResponseValid(apiResponse))
+                if (IsResponseValid(apiResponse))
                 {
                     return true;
                 }
@@ -127,11 +136,7 @@ namespace PatchKit.Api
         {
             if (TryGetFromServer(_connectionSettings.MainServer, path, query, timeout, out apiResponse))
             {
-                if (!IsGetResponseValid(apiResponse))
-                {
-                    throw new ApiException(apiResponse.HttpWebResponse.StatusDescription,
-                        (int) apiResponse.HttpWebResponse.StatusCode);
-                }
+                ThrowIfResponseNotValid(apiResponse);
 
                 return true;
             }
@@ -175,7 +180,7 @@ namespace PatchKit.Api
             {
                 if (!TryGet(path, query, _connectionSettings.MaximumTimeout, out apiResponse))
                 {
-                    throw new TimeoutException("API request has timed out.");
+                    throw new ApiConnectionException();
                 }
             }
 
