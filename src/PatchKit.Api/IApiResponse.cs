@@ -23,6 +23,6 @@ namespace PatchKit.Api
         /// <summary>
         /// Returns body parsed to JSON.
         /// </summary>
-        JObject GetObject();
+        JToken GetJson();
     }
 }

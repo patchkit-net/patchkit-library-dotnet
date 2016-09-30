@@ -31,9 +31,9 @@ namespace PatchKit.Api
 
         public string Body { get; private set; }
 
-        public JObject GetObject()
+        public JToken GetJson()
         {
-            return JObject.Parse(Body);
+            return JToken.Parse(Body);
         }
 
         void IDisposable.Dispose()
