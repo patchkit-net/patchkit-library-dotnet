@@ -17,7 +17,12 @@ namespace PatchKit.Api
             return new ApiConnectionSettings
             {
                 MainServer = "http://api.patchkit.net",
-                CacheServers = null,
+                CacheServers =
+                    new[]
+                    {
+                        "api-cache-node-1.patchkit.net:43230", "api-cache-node-2.patchkit.net:43230",
+                        "api-cache-node-3.patchkit.net:43230"
+                    },
                 MinimumTimeout = 5000,
                 MaximumTimeout = 10000
             };
