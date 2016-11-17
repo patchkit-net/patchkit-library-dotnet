@@ -125,7 +125,7 @@
                 using (helper.CreateCodeScope(
                         $"public ICancellableAsyncResult Begin{resourceName}({string.Join(", ", resourceArguments.Select(argument => argument.GetDefinition()))}, CancellableAsyncCallback callback = null, object state = null)"))
                 {
-                    helper.WriteLine($"string resource = \"{resource.Name.TrimEnd('?')}\";");
+                    helper.WriteLine($"string resource = \"{swagger["basePath"]}{resource.Name.TrimEnd('?')}\";");
                     helper.WriteLine($"string query = string.Empty;");
                     foreach (var usage in resourceArgumentsFormatCode)
                     {
