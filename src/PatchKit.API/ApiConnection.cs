@@ -34,9 +34,11 @@ namespace PatchKit.Api
 
             _connectionSettings = connectionSettings;
             _httpDownloader = httpDownloader;
-			_jsonSerializerSettings = JsonConvert.DefaultSettings.Invoke();
-			_jsonSerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-			_jsonSerializerSettings.MissingMemberHandling = MissingMemberHandling.Ignore;
+		    _jsonSerializerSettings = new JsonSerializerSettings
+		    {
+		        NullValueHandling = NullValueHandling.Ignore,
+		        MissingMemberHandling = MissingMemberHandling.Ignore
+		    };
         }
 
         public ApiConnection(ApiConnectionSettings connectionSettings) : this(connectionSettings, new ApiHttpDownloader())
