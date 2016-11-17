@@ -1,5 +1,17 @@
 ﻿
 
+
+
+
+
+
+
+
+
+
+
+
+
 using System;
 using Newtonsoft.Json;
 using PatchKit.Async;
@@ -7,11 +19,31 @@ namespace PatchKit.Api
 {
     public partial class ApiConnection
     {
+        public struct Error
+        {
+            /// <summary>Human-readable error message</summary>
+            [JsonProperty("message")]
+            public string Message;
+        }
+        
         public struct Job
         {
             /// <summary>Job GUID to be used with Jobs API.</summary>
             [JsonProperty("job_guid")]
             public string JobGuid;
+        }
+        
+        public struct App
+        {
+            /// <summary>Initial app id.</summary>
+            [JsonProperty("id")]
+            public int Id;
+            /// <summary>Application name</summary>
+            [JsonProperty("name")]
+            public string Name;
+            /// <summary>The secret of patcher to use.</summary>
+            [JsonProperty("patcher_secret")]
+            public string PatcherSecret;
         }
         
         public struct AppVersion
@@ -57,9 +89,15 @@ namespace PatchKit.Api
             /// <summary>Compression method.</summary>
             [JsonProperty("compression_method")]
             public string CompressionMethod;
-            /// <summary></summary>
+            /// <summary>List of content files.</summary>
             [JsonProperty("files")]
             public AppContentSummaryFile[] Files;
+            /// <summary></summary>
+            [JsonProperty("hash_code")]
+            public string HashCode;
+            /// <summary></summary>
+            [JsonProperty("chunks")]
+            public Chunks Chunks;
         }
         
         public struct AppContentSummaryFile
@@ -92,6 +130,22 @@ namespace PatchKit.Api
             /// <summary>List of removed files.</summary>
             [JsonProperty("removed_files")]
             public string[] RemovedFiles;
+            /// <summary></summary>
+            [JsonProperty("hash_code")]
+            public string HashCode;
+            /// <summary></summary>
+            [JsonProperty("chunks")]
+            public Chunks Chunks;
+        }
+        
+        public struct Chunks
+        {
+            /// <summary></summary>
+            [JsonProperty("size")]
+            public int Size;
+            /// <summary></summary>
+            [JsonProperty("hashes")]
+            public string[] Hashes;
         }
         
         public struct AppContentTorrentUrl
@@ -120,6 +174,39 @@ namespace PatchKit.Api
             /// <summary>Url to diff file.</summary>
             [JsonProperty("url")]
             public string Url;
+        }
+        
+        public struct Upload
+        {
+            /// <summary></summary>
+            [JsonProperty("id")]
+            public int Id;
+        }
+        
+        /// <summary>Gets detailes app info</summary>
+        /// <param name="appSecret">Secret of an application.</param>
+        /// <param name="callback">Callback.</param>
+        /// <param name="state">Operation state.</param>
+        public ICancellableAsyncResult BeginGetApplicationInfo(string appSecret, CancellableAsyncCallback callback = null, object state = null)
+        {
+            string resource = "/1/apps/{app_secret}";
+            string query = string.Empty;
+            resource = resource.Replace("{app_secret}", appSecret);
+            return BeginApiRequest<App>(resource + "?" + query, callback, state);
+        }
+        
+        /// <summary>Ends request of <see cref="BeginGetApplicationInfo"/></summary>
+        /// <param name="asyncResult">Async result.</param>
+        public App EndGetApplicationInfo(IAsyncResult asyncResult)
+        {
+            return EndApiRequest<App>(asyncResult);
+        }
+        
+        /// <summary>Gets detailes app info</summary>
+        /// <param name="appSecret">Secret of an application.</param>
+        public App GetApplicationInfo(string appSecret)
+        {
+            return EndGetApplicationInfo(BeginGetApplicationInfo(appSecret));
         }
         
         /// <summary>Gets a complete changelog of an application.</summary>
@@ -181,7 +268,7 @@ namespace PatchKit.Api
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="callback">Callback.</param>
         /// <param name="state">Operation state.</param>
-        public ICancellableAsyncResult BeginGetAppLatestVersion(string appSecret, CancellableAsyncCallback callback = null, object state = null)
+        public ICancellableAsyncResult BeginGetAppLatestAppVersion(string appSecret, CancellableAsyncCallback callback = null, object state = null)
         {
             string resource = "/1/apps/{app_secret}/versions/latest";
             string query = string.Empty;
@@ -189,25 +276,25 @@ namespace PatchKit.Api
             return BeginApiRequest<AppVersion>(resource + "?" + query, callback, state);
         }
         
-        /// <summary>Ends request of <see cref="BeginGetAppLatestVersion"/></summary>
+        /// <summary>Ends request of <see cref="BeginGetAppLatestAppVersion"/></summary>
         /// <param name="asyncResult">Async result.</param>
-        public AppVersion EndGetAppLatestVersion(IAsyncResult asyncResult)
+        public AppVersion EndGetAppLatestAppVersion(IAsyncResult asyncResult)
         {
             return EndApiRequest<AppVersion>(asyncResult);
         }
         
         /// <summary>Gets latest application version object.</summary>
         /// <param name="appSecret">Secret of an application.</param>
-        public AppVersion GetAppLatestVersion(string appSecret)
+        public AppVersion GetAppLatestAppVersion(string appSecret)
         {
-            return EndGetAppLatestVersion(BeginGetAppLatestVersion(appSecret));
+            return EndGetAppLatestAppVersion(BeginGetAppLatestAppVersion(appSecret));
         }
         
         /// <summary>Gets latest application version id.</summary>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="callback">Callback.</param>
         /// <param name="state">Operation state.</param>
-        public ICancellableAsyncResult BeginGetAppLatestVersionId(string appSecret, CancellableAsyncCallback callback = null, object state = null)
+        public ICancellableAsyncResult BeginGetAppLatestAppVersionId(string appSecret, CancellableAsyncCallback callback = null, object state = null)
         {
             string resource = "/1/apps/{app_secret}/versions/latest/id";
             string query = string.Empty;
@@ -215,18 +302,18 @@ namespace PatchKit.Api
             return BeginApiRequest<AppVersionId>(resource + "?" + query, callback, state);
         }
         
-        /// <summary>Ends request of <see cref="BeginGetAppLatestVersionId"/></summary>
+        /// <summary>Ends request of <see cref="BeginGetAppLatestAppVersionId"/></summary>
         /// <param name="asyncResult">Async result.</param>
-        public AppVersionId EndGetAppLatestVersionId(IAsyncResult asyncResult)
+        public AppVersionId EndGetAppLatestAppVersionId(IAsyncResult asyncResult)
         {
             return EndApiRequest<AppVersionId>(asyncResult);
         }
         
         /// <summary>Gets latest application version id.</summary>
         /// <param name="appSecret">Secret of an application.</param>
-        public AppVersionId GetAppLatestVersionId(string appSecret)
+        public AppVersionId GetAppLatestAppVersionId(string appSecret)
         {
-            return EndGetAppLatestVersionId(BeginGetAppLatestVersionId(appSecret));
+            return EndGetAppLatestAppVersionId(BeginGetAppLatestAppVersionId(appSecret));
         }
         
         /// <summary>Gets selected version object. If API key is provided, can get the information about draft version.</summary>

@@ -1,7 +1,7 @@
-﻿{
+{
     "swagger": "2.0",
     "info": {
-        "version": "1.0.0",
+        "version": "0.1.2",
         "title": "PatchKit API",
         "contact": {
             "name": "API Support",
@@ -10,8 +10,47 @@
         }
     },
     "host": "api.patchkit.net",
+    "basePath": "/1",
     "paths": {
-        "/1/apps/{app_secret}/changelog": {
+        "/apps/{app_secret}": {
+            "get": {
+                "summary": "Get application info",
+                "description": "Gets detailes app info",
+                "tags": [
+                    "App"
+                ],
+                "parameters": [
+                    {
+                        "name": "app_secret",
+                        "in": "path",
+                        "description": "Secret of an application.",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/App"
+                        }
+                    },
+                    "404": {
+                        "description": "Application not found.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unknown error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/apps/{app_secret}/changelog": {
             "get": {
                 "summary": "Gets app changelog",
                 "description": "Gets a complete changelog of an application.",
@@ -59,7 +98,7 @@
                 }
             }
         },
-        "/1/apps/{app_secret}/versions": {
+        "/apps/{app_secret}/versions": {
             "get": {
                 "summary": "Gets app version list",
                 "description": "Gets the basic information for all published versions. When API Key is provided, draft version information is included if draft version exists.",
@@ -151,9 +190,9 @@
                 }
             }
         },
-        "/1/apps/{app_secret}/versions/latest": {
+        "/apps/{app_secret}/versions/latest": {
             "get": {
-                "summary": "Gets app latest version",
+                "summary": "Gets app latest app version",
                 "description": "Gets latest application version object.",
                 "parameters": [
                     {
@@ -174,9 +213,9 @@
                 }
             }
         },
-        "/1/apps/{app_secret}/versions/latest/id": {
+        "/apps/{app_secret}/versions/latest/id": {
             "get": {
-                "summary": "Gets app latest version id",
+                "summary": "Gets app latest app version id",
                 "description": "Gets latest application version id.",
                 "parameters": [
                     {
@@ -197,7 +236,7 @@
                 }
             }
         },
-        "/1/apps/{app_secret}/versions/{version_id}": {
+        "/apps/{app_secret}/versions/{version_id}": {
             "get": {
                 "summary": "Gets app version",
                 "description": "Gets selected version object. If API key is provided, can get the information about draft version.",
@@ -300,7 +339,7 @@
                 }
             }
         },
-        "/1/apps/{app_secret}/versions/{version_id}/content_summary": {
+        "/apps/{app_secret}/versions/{version_id}/content_summary": {
             "get": {
                 "summary": "Gets app version content summary",
                 "description": "Gets selected version content summary.",
@@ -334,7 +373,7 @@
                 }
             }
         },
-        "/1/apps/{app_secret}/versions/{version_id}/diff_summary": {
+        "/apps/{app_secret}/versions/{version_id}/diff_summary": {
             "get": {
                 "summary": "Gets app version diff summary",
                 "description": "Gets selected version diff summary.",
@@ -368,7 +407,7 @@
                 }
             }
         },
-        "/1/apps/{app_secret}/versions/{version_id}/content_torrent_url": {
+        "/apps/{app_secret}/versions/{version_id}/content_torrent_url": {
             "get": {
                 "summary": "Gets app version content torrent url",
                 "description": "Gets selected application version content torrent url.",
@@ -402,7 +441,7 @@
                 }
             }
         },
-        "/1/apps/{app_secret}/versions/{version_id}/diff_torrent_url": {
+        "/apps/{app_secret}/versions/{version_id}/diff_torrent_url": {
             "get": {
                 "summary": "Gets app version diff torrent url",
                 "description": "Gets selected application version diff torrent url.",
@@ -436,7 +475,7 @@
                 }
             }
         },
-        "/1/apps/{app_secret}/versions/{version_id}/content_urls": {
+        "/apps/{app_secret}/versions/{version_id}/content_urls": {
             "get": {
                 "summary": "Gets app version content urls",
                 "description": "Gets selected application version content urls.",
@@ -473,7 +512,7 @@
                 }
             }
         },
-        "/1/apps/{app_secret}/versions/{version_id}/diff_urls": {
+        "/apps/{app_secret}/versions/{version_id}/diff_urls": {
             "get": {
                 "summary": "Gets app version diff urls",
                 "description": "Gets selected application version diff urls.",
@@ -510,10 +549,10 @@
                 }
             }
         },
-        "/1/apps/{app_secret}/versions/{version_id}/content_file": {
+        "/apps/{app_secret}/versions/{version_id}/content_file": {
             "put": {
                 "summary": "Updates app version content file",
-                "description": "Updates the draft version with given content file. Version needs to be processed afterwards, so a job guid is returned.",
+                "description": "Updates the draft version with given content file. Version needs to be processed afterwards, so a job guid is returned. Should file or upload_id be passed.",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -543,9 +582,16 @@
                     {
                         "name": "file",
                         "in": "formData",
-                        "required": true,
+                        "required": false,
                         "type": "file",
                         "description": "Zip file with application content."
+                    },
+                    {
+                        "name": "upload_id",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "description": "Id of upload entity."
                     }
                 ],
                 "responses": {
@@ -568,10 +614,10 @@
                 ]
             }
         },
-        "/1/apps/{app_secret}/versions/{version_id}/diff_file": {
+        "/apps/{app_secret}/versions/{version_id}/diff_file": {
             "put": {
                 "summary": "Updates version diff file",
-                "description": "Updates the draft version with given diff file. Version needs to be processed afterwards, so a job guid is returned.",
+                "description": "Updates the draft version with given diff file. Version needs to be processed afterwards, so a job guid is returned. Should file or upload_id be passed.",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -601,9 +647,16 @@
                     {
                         "name": "file",
                         "in": "formData",
-                        "required": true,
+                        "required": false,
                         "type": "file",
                         "description": "Zip file with application binary diffs."
+                    },
+                    {
+                        "name": "upload_id",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "description": "Id of upload entity."
                     },
                     {
                         "name": "diff_summary",
@@ -633,7 +686,7 @@
                 ]
             }
         },
-        "/1/apps/{app_secret}/versions/{version_id}/publish": {
+        "/apps/{app_secret}/versions/{version_id}/publish": {
             "put": {
                 "summary": "Publishes version",
                 "description": "Publishes selected version. Given version should be a draft version.",
@@ -671,9 +724,117 @@
                     "Version"
                 ]
             }
+        },
+        "/uploads": {
+            "post": {
+                "summary": "Creates a new upload",
+                "tags": [
+                    "Upload"
+                ],
+                "consumes": [
+                    "www/form-data"
+                ],
+                "parameters": [
+                    {
+                        "name": "total_size_bytes",
+                        "type": "integer",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "name": "api_key",
+                        "in": "query",
+                        "required": false,
+                        "type": "string",
+                        "description": "Application owner API key. Required when not using a session."
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/Upload"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    }
+                }
+            }
+        },
+        "/uploads/{id}/chunk": {
+            "post": {
+                "summary": "Uploads a chunk",
+                "tags": [
+                    "Upload"
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "type": "integer",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "name": "chunk",
+                        "type": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "name": "api_key",
+                        "in": "query",
+                        "required": true,
+                        "type": "string",
+                        "description": "Application owner API key. Required when not using a session."
+                    },
+                    {
+                        "name": "Content-Range",
+                        "in": "header",
+                        "required": true,
+                        "type": "string",
+                        "description": "RFC2616 Content-Range"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/Upload"
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "Error": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "description": "Human-readable error message"
+                }
+            }
+        },
         "Job": {
             "type": "object",
             "properties": {
@@ -684,6 +845,25 @@
             },
             "example": {
                 "job_guid": "5776de94-56dc-4e8a-8992-1c1d9da1410c"
+            }
+        },
+        "App": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 1,
+                    "description": "Initial app id."
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Application name"
+                },
+                "patcher_secret": {
+                    "type": "string",
+                    "description": "The secret of patcher to use."
+                }
             }
         },
         "AppVersion": {
@@ -756,7 +936,14 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/AppContentSummaryFile"
-                    }
+                    },
+                    "description": "List of content files."
+                },
+                "hash_code": {
+                    "type": "string"
+                },
+                "chunks": {
+                    "$ref": "#/definitions/Chunks"
                 }
             }
         },
@@ -809,6 +996,26 @@
                         "type": "string"
                     },
                     "description": "List of removed files."
+                },
+                "hash_code": {
+                    "type": "string"
+                },
+                "chunks": {
+                    "$ref": "#/definitions/Chunks"
+                }
+            }
+        },
+        "Chunks": {
+            "type": "object",
+            "properties": {
+                "size": {
+                    "type": "integer"
+                },
+                "hashes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -845,6 +1052,14 @@
                 "url": {
                     "type": "string",
                     "description": "Url to diff file."
+                }
+            }
+        },
+        "Upload": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
                 }
             }
         }
