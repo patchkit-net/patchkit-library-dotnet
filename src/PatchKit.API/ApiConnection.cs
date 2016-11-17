@@ -15,6 +15,8 @@ namespace PatchKit.Api
 
 		private readonly ApiConnectionSettings _connectionSettings;
 
+		private readonly JsonSerializerSettings _jsonSerializerSettings;
+
 		public ApiConnection(ApiConnectionSettings connectionSettings, [NotNull] IApiHttpDownloader httpDownloader)
         {
             if (connectionSettings.Urls == null)
@@ -32,6 +34,9 @@ namespace PatchKit.Api
 
             _connectionSettings = connectionSettings;
             _httpDownloader = httpDownloader;
+			_jsonSerializerSettings = JsonConvert.DefaultSettings.Invoke();
+			_jsonSerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+			_jsonSerializerSettings.MissingMemberHandling = MissingMemberHandling.Ignore;
         }
 
         public ApiConnection(ApiConnectionSettings connectionSettings) : this(connectionSettings, new ApiHttpDownloader())
@@ -107,7 +112,7 @@ namespace PatchKit.Api
 		            }
 
                     // Deserialize response content.
-                    return JsonConvert.DeserializeObject<T>(result.Value.Value);
+					return JsonConvert.DeserializeObject<T>(result.Value.Value, _jsonSerializerSettings);
                 }
 		    }
 
