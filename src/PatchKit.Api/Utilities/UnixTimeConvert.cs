@@ -12,18 +12,20 @@ namespace PatchKit.Api.Utilities
         /// </summary>
         public static DateTime FromUnixTimeStamp(double unixTimeStamp)
         {
-            var dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            dateTime = dateTime.AddSeconds(unixTimeStamp).ToLocalTime();
-            return dateTime;
+            var baseDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            baseDateTime = baseDateTime.AddSeconds(unixTimeStamp).ToLocalTime();
+            return baseDateTime;
         }
 
         /// <summary>
         /// Converts DateTime value to Unix time stamp.
         /// </summary>
-        public static long ToUnixTimeStamp(DateTime dateTime)
+        public static double ToUnixTimeStamp(DateTime dateTime)
         {
-            return Convert.ToInt64((TimeZoneInfo.ConvertTimeToUtc(dateTime) -
-                   new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds);
+            var baseDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            var dateTimeUtc = TimeZoneInfo.ConvertTimeToUtc(dateTime);
+
+            return (dateTimeUtc - baseDateTime).TotalSeconds;
         }
     }
 }
