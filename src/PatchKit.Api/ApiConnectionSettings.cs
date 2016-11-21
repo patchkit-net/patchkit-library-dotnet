@@ -23,8 +23,7 @@ namespace PatchKit.Api
                         "api-cache-node-1.patchkit.net:43230", "api-cache-node-2.patchkit.net:43230",
                         "api-cache-node-3.patchkit.net:43230"
                     },
-                MinimumTimeout = 5000,
-                MaximumTimeout = 10000
+                Timeout = 5000
             };
         }
 
@@ -39,13 +38,23 @@ namespace PatchKit.Api
         [CanBeNull] public string[] CacheServers;
 
         /// <summary>
-        /// Minimum timeout of single request to one API server.
+        /// Timeout for connection with one server.
         /// </summary>
-        public int MinimumTimeout;
+        public int Timeout;
 
         /// <summary>
-        /// Maximum timeout of single request to one API server.
+        /// Total timeout of request - <see cref="Timeout"/> multipled by amount of servers (including main server).
         /// </summary>
-        public int MaximumTimeout;
+        public int TotalTimeout
+        {
+            get
+            {
+                if (CacheServers == null)
+                {
+                    return Timeout;
+                }
+                return Timeout*(1 + CacheServers.Length);
+            }
+        }
     }
 }
