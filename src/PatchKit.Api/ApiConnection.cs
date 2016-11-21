@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Net;
+using Newtonsoft.Json;
 
 namespace PatchKit.Api
 {
     /// <summary>
     /// PatchKit Api Connection.
     /// </summary>
-    public sealed class ApiConnection
+    public sealed partial class ApiConnection
     {
         private readonly ApiConnectionSettings _connectionSettings;
+
+        private readonly JsonSerializerSettings _jsonSerializerSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApiConnection"/> class.
@@ -20,9 +23,7 @@ namespace PatchKit.Api
         /// connectionSettings - Url to main server is empty.
         /// </exception>
         /// <exception cref="System.ArgumentOutOfRangeException">
-        /// connectionSettings - Invalid minimum timeout (must be between 1 and Infinite).
-        /// or
-        /// connectionSettings - Invalid maximum timeout (must be between minimum timeout and Infinite).
+        /// connectionSettings - Timeout value is less than zero and is not <see cref="System.Threading.Timeout.Infinite" />.
         /// </exception>
         public ApiConnection(ApiConnectionSettings connectionSettings)
         {
@@ -34,19 +35,16 @@ namespace PatchKit.Api
             {
                 throw new ArgumentNullException("connectionSettings", "Url to main server is empty.");
             }
-            if (connectionSettings.MinimumTimeout <= 0)
+            if (connectionSettings.Timeout < 0 && connectionSettings.Timeout != System.Threading.Timeout.Infinite)
             {
                 throw new ArgumentOutOfRangeException("connectionSettings",
-                    "Invalid minimum timeout (must be between 1 and Infinite).");
-            }
-            if (connectionSettings.MaximumTimeout <= 0 ||
-                connectionSettings.MaximumTimeout < connectionSettings.MinimumTimeout)
-            {
-                throw new ArgumentOutOfRangeException("connectionSettings",
-                    "Invalid maximum timeout (must be between minimum timeout and Infinite).");
+                    "Timeout value is less than zero and is not System.Threading.Timeout.Infinite.");
             }
 
             _connectionSettings = connectionSettings;
+            _jsonSerializerSettings = new JsonSerializerSettings();
+            _jsonSerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+            _jsonSerializerSettings.MissingMemberHandling = MissingMemberHandling.Ignore;
         }
 
         /// <summary>
@@ -56,9 +54,14 @@ namespace PatchKit.Api
         {
         }
 
-        bool IsResponseValid(IApiResponse apiResponse)
+        private T ParseResponse<T>(IApiResponse response)
         {
-            if ((int)apiResponse.HttpWebResponse.StatusCode >= 400)
+            return JsonConvert.DeserializeObject<T>(response.Body, _jsonSerializerSettings);
+        }
+
+        private bool IsResponseValid(IApiResponse response)
+        {
+            if ((int)response.HttpWebResponse.StatusCode >= 400)
             {
                 return false;
             }
@@ -66,15 +69,39 @@ namespace PatchKit.Api
             return true;
         }
 
-        void ThrowIfResponseNotValid(IApiResponse apiResponse)
+        private void ThrowIfResponseNotValid(IApiResponse response)
         {
-            if (!IsResponseValid(apiResponse))
+            if (!IsResponseValid(response))
             {
-                throw new ApiResponseException((int)apiResponse.HttpWebResponse.StatusCode);
+                throw new ApiResponseException((int)response.HttpWebResponse.StatusCode);
             }
         }
 
-        private bool TryGetFromServer(string host, string path, string query, int timeout, out IApiResponse apiResponse)
+        private HttpWebRequest CreateHttpRequest(Uri uri)
+        {
+            var httpRequest = WebRequest.Create(uri.ToString()) as HttpWebRequest;
+
+            if (httpRequest == null)
+            {
+                throw new FormatException(string.Format("Invaild API uri - {0}", uri));
+            }
+
+            return httpRequest;
+        }
+
+        private bool TryGetHttpResponse(HttpWebRequest httpRequest, out HttpWebResponse httpResponse)
+        {
+            httpResponse = (HttpWebResponse)httpRequest.GetResponse();
+
+            if (httpResponse.StatusCode == HttpStatusCode.InternalServerError)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool TryGetResponse(string host, string path, string query, int timeout, out IApiResponse response)
         {
             Uri uri = new UriBuilder
             {
@@ -84,27 +111,22 @@ namespace PatchKit.Api
                 Query = query
             }.Uri;
 
-            var httpRequest = WebRequest.Create(uri.ToString()) as HttpWebRequest;
-
-            if (httpRequest == null)
-            {
-                throw new FormatException(string.Format("Invaild API uri - {0}", uri));
-            }
+            var httpRequest = CreateHttpRequest(uri);
 
             httpRequest.Timeout = timeout;
 
-            apiResponse = null;
+            response = null;
 
             try
             {
-                var response = (HttpWebResponse)httpRequest.GetResponse();
+                HttpWebResponse httpResponse;
 
-                if (response.StatusCode == HttpStatusCode.InternalServerError)
+                if (!TryGetHttpResponse(httpRequest, out httpResponse))
                 {
                     return false;
                 }
 
-                apiResponse = new ApiResponse(response);
+                response = new ApiResponse(httpResponse);
 
                 return true;
             }
@@ -118,12 +140,12 @@ namespace PatchKit.Api
             }
         }
 
-        private bool TryGetFromCacheServer(string host, string path, string query, int timeout,
-            out IApiResponse apiResponse)
+        private bool TryGetResponseFromCacheServer(string host, string path, string query, int timeout,
+            out IApiResponse response)
         {
-            if (TryGetFromServer(host, path, query, timeout, out apiResponse))
+            if (TryGetResponse(host, path, query, timeout, out response))
             {
-                if (IsResponseValid(apiResponse))
+                if (IsResponseValid(response))
                 {
                     return true;
                 }
@@ -132,11 +154,11 @@ namespace PatchKit.Api
             return false;
         }
 
-        private bool TryGetFromMainServer(string path, string query, int timeout, out IApiResponse apiResponse)
+        private bool TryGetResponseFromMainServer(string path, string query, int timeout, out IApiResponse response)
         {
-            if (TryGetFromServer(_connectionSettings.MainServer, path, query, timeout, out apiResponse))
+            if (TryGetResponse(_connectionSettings.MainServer, path, query, timeout, out response))
             {
-                ThrowIfResponseNotValid(apiResponse);
+                ThrowIfResponseNotValid(response);
 
                 return true;
             }
@@ -144,9 +166,9 @@ namespace PatchKit.Api
             return false;
         }
 
-        private bool TryGet(string path, string query, int timeout, out IApiResponse apiResponse)
+        private bool TryGetResponse(string path, string query, int timeout, out IApiResponse apiResponse)
         {
-            if (TryGetFromMainServer(path, query, timeout, out apiResponse))
+            if (TryGetResponseFromMainServer(path, query, timeout, out apiResponse))
             {
                 return true;
             }
@@ -155,7 +177,7 @@ namespace PatchKit.Api
             {
                 foreach (var cacheServer in _connectionSettings.CacheServers)
                 {
-                    if (TryGetFromCacheServer(cacheServer, path, query, timeout, out apiResponse))
+                    if (TryGetResponseFromCacheServer(cacheServer, path, query, timeout, out apiResponse))
                     {
                         return true;
                     }
@@ -170,21 +192,27 @@ namespace PatchKit.Api
         /// </summary>
         /// <param name="path">The path to the resource.</param>
         /// <param name="query">The query of the resource.</param>
-        /// <returns>Resource result.</returns>
-        /// <exception cref="System.TimeoutException">API request has timed out.</exception>
-        public IApiResponse Get(string path, string query)
+        /// <returns>Response with resource result.</returns>
+        /// <exception cref="ApiConnectionException">Could not connect to API.</exception>
+        public IApiResponse GetResponse(string path, string query)
         {
-            IApiResponse apiResponse;
+            int timeout = _connectionSettings.Timeout;
 
-            if (!TryGet(path, query, _connectionSettings.MinimumTimeout, out apiResponse))
+            IApiResponse response;
+
+            if (!TryGetResponse(path, query, timeout, out response))
             {
-                if (!TryGet(path, query, _connectionSettings.MaximumTimeout, out apiResponse))
+                // Double timeout and try again.
+
+                timeout *= 2;
+
+                if (!TryGetResponse(path, query, timeout, out response))
                 {
                     throw new ApiConnectionException();
                 }
             }
 
-            return apiResponse;
+            return response;
         }
     }
 }
