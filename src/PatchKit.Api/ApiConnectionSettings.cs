@@ -16,7 +16,7 @@ namespace PatchKit.Api
         {
             return new ApiConnectionSettings
             {
-                MainServer = "http://api.patchkit.net",
+                MainServer = "api.patchkit.net",
                 CacheServers =
                     new[]
                     {
