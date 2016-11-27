@@ -6,7 +6,7 @@ namespace PatchKit.Api
     public partial class MainApiConnection
     {
         /// <summary>
-        /// Get detailes app info
+        /// Gets detailes app info
         /// </summary>
         /// <param name="appSecret">Secret of an application.</param>
         public App GetApplicationInfo(string appSecret)
@@ -20,7 +20,7 @@ namespace PatchKit.Api
         
         
         /// <summary>
-        /// Get the basic information for all published versions. When API Key is provided, draft version information is included if draft version exists.
+        /// Gets the basic information for all published versions. When API Key is provided, draft version information is included if draft version exists.
         /// </summary>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="apiKey">Application owner API key.</param>
@@ -39,7 +39,7 @@ namespace PatchKit.Api
         }
         
         /// <summary>
-        /// Get latest application version object.
+        /// Gets latest application version object.
         /// </summary>
         /// <param name="appSecret">Secret of an application.</param>
         public AppVersion GetAppLatestAppVersion(string appSecret)
@@ -52,7 +52,7 @@ namespace PatchKit.Api
         }
         
         /// <summary>
-        /// Get latest application version id.
+        /// Gets latest application version id.
         /// </summary>
         /// <param name="appSecret">Secret of an application.</param>
         public AppVersionId GetAppLatestAppVersionId(string appSecret)
@@ -65,7 +65,7 @@ namespace PatchKit.Api
         }
         
         /// <summary>
-        /// Get selected version object. If API key is provided, can get the information about draft version.
+        /// Gets selected version object. If API key is provided, can get the information about draft version.
         /// </summary>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="versionId">Version id.</param>
@@ -86,7 +86,7 @@ namespace PatchKit.Api
         }
         
         /// <summary>
-        /// Get selected version content summary.
+        /// Gets selected version content summary.
         /// </summary>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="versionId">Version id.</param>
@@ -101,7 +101,7 @@ namespace PatchKit.Api
         }
         
         /// <summary>
-        /// Get selected version diff summary.
+        /// Gets selected version diff summary.
         /// </summary>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="versionId">Version id.</param>
@@ -116,37 +116,49 @@ namespace PatchKit.Api
         }
         
         /// <summary>
-        /// Get selected application version content torrent url.
+        /// Gets selected application version content torrent url.
         /// </summary>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="versionId">Version id.</param>
-        public AppContentTorrentUrl GetAppVersionContentTorrentUrl(string appSecret, int versionId)
+        /// <param name="keySecret">Key secret provided by key server. This value is optional and is needed only if application is secured by license keys.</param>
+        public AppContentTorrentUrl GetAppVersionContentTorrentUrl(string appSecret, int versionId, string keySecret = null)
         {
             string path = "/1/apps/{app_secret}/versions/{version_id}/content_torrent_url";
+            List<string> queryList = new List<string>();
             path = path.Replace("{app_secret}", appSecret.ToString());
             path = path.Replace("{version_id}", versionId.ToString());
-            string query = string.Empty;
+            if (keySecret != null)
+            {
+                queryList.Add("key_secret="+keySecret);
+            }
+            string query = string.Join("&", queryList.ToArray());
             var response = GetResponse(path, query);
             return ParseResponse<AppContentTorrentUrl>(response);
         }
         
         /// <summary>
-        /// Get selected application version diff torrent url.
+        /// Gets selected application version diff torrent url.
         /// </summary>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="versionId">Version id.</param>
-        public AppDiffTorrentUrl GetAppVersionDiffTorrentUrl(string appSecret, int versionId)
+        /// <param name="keySecret">Key secret provided by key server. This value is optional and is needed only if application is secured by license keys.</param>
+        public AppDiffTorrentUrl GetAppVersionDiffTorrentUrl(string appSecret, int versionId, string keySecret = null)
         {
             string path = "/1/apps/{app_secret}/versions/{version_id}/diff_torrent_url";
+            List<string> queryList = new List<string>();
             path = path.Replace("{app_secret}", appSecret.ToString());
             path = path.Replace("{version_id}", versionId.ToString());
-            string query = string.Empty;
+            if (keySecret != null)
+            {
+                queryList.Add("key_secret="+keySecret);
+            }
+            string query = string.Join("&", queryList.ToArray());
             var response = GetResponse(path, query);
             return ParseResponse<AppDiffTorrentUrl>(response);
         }
         
         /// <summary>
-        /// Get selected application version content urls.
+        /// Gets selected application version content urls.
         /// </summary>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="versionId">Version id.</param>
@@ -161,7 +173,7 @@ namespace PatchKit.Api
         }
         
         /// <summary>
-        /// Get selected application version diff urls.
+        /// Gets selected application version diff urls.
         /// </summary>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="versionId">Version id.</param>

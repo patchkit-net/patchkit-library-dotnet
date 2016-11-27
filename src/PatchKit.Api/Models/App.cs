@@ -22,5 +22,11 @@ namespace PatchKit.Api.Models
         [JsonProperty("patcher_secret")]
         public string PatcherSecret;
         
+        /// <summary>
+        /// If set to true, application needs to contact keys server to get valid key_secret for content download.
+        /// </summary>
+        [JsonProperty("use_keys")]
+        public bool UseKeys;
+        
     }
 }

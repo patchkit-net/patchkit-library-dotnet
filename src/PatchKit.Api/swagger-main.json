@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "version": "0.1.2",
+        "version": "0.1.3",
         "title": "PatchKit API",
         "contact": {
             "name": "API Support",
@@ -15,7 +15,7 @@
         "/apps/{app_secret}": {
             "get": {
                 "summary": "Get application info",
-                "description": "Get detailes app info",
+                "description": "Gets detailes app info",
                 "tags": [
                     "App"
                 ],
@@ -52,8 +52,8 @@
         },
         "/apps/{app_secret}/changelog": {
             "get": {
-                "summary": "Get app changelog",
-                "description": "Get a complete changelog of an application.",
+                "summary": "Gets app changelog",
+                "description": "Gets a complete changelog of an application.",
                 "parameters": [
                     {
                         "name": "app_secret",
@@ -100,8 +100,8 @@
         },
         "/apps/{app_secret}/versions": {
             "get": {
-                "summary": "Get app version list",
-                "description": "Get the basic information for all published versions. When API Key is provided, draft version information is included if draft version exists.",
+                "summary": "Gets app version list",
+                "description": "Gets the basic information for all published versions. When API Key is provided, draft version information is included if draft version exists.",
                 "parameters": [
                     {
                         "name": "app_secret",
@@ -192,8 +192,8 @@
         },
         "/apps/{app_secret}/versions/latest": {
             "get": {
-                "summary": "Get app latest app version",
-                "description": "Get latest application version object.",
+                "summary": "Gets app latest app version",
+                "description": "Gets latest application version object.",
                 "parameters": [
                     {
                         "name": "app_secret",
@@ -215,8 +215,8 @@
         },
         "/apps/{app_secret}/versions/latest/id": {
             "get": {
-                "summary": "Get app latest app version id",
-                "description": "Get latest application version id.",
+                "summary": "Gets app latest app version id",
+                "description": "Gets latest application version id.",
                 "parameters": [
                     {
                         "name": "app_secret",
@@ -238,8 +238,8 @@
         },
         "/apps/{app_secret}/versions/{version_id}": {
             "get": {
-                "summary": "Get app version",
-                "description": "Get selected version object. If API key is provided, can get the information about draft version.",
+                "summary": "Gets app version",
+                "description": "Gets selected version object. If API key is provided, can get the information about draft version.",
                 "parameters": [
                     {
                         "name": "app_secret",
@@ -341,8 +341,8 @@
         },
         "/apps/{app_secret}/versions/{version_id}/content_summary": {
             "get": {
-                "summary": "Get app version content summary",
-                "description": "Get selected version content summary.",
+                "summary": "Gets app version content summary",
+                "description": "Gets selected version content summary.",
                 "parameters": [
                     {
                         "name": "app_secret",
@@ -375,8 +375,8 @@
         },
         "/apps/{app_secret}/versions/{version_id}/diff_summary": {
             "get": {
-                "summary": "Get app version diff summary",
-                "description": "Get selected version diff summary.",
+                "summary": "Gets app version diff summary",
+                "description": "Gets selected version diff summary.",
                 "parameters": [
                     {
                         "name": "app_secret",
@@ -409,8 +409,8 @@
         },
         "/apps/{app_secret}/versions/{version_id}/content_torrent_url": {
             "get": {
-                "summary": "Get app version content torrent url",
-                "description": "Get selected application version content torrent url.",
+                "summary": "Gets app version content torrent url",
+                "description": "Gets selected application version content torrent url.",
                 "parameters": [
                     {
                         "name": "app_secret",
@@ -426,6 +426,13 @@
                         "required": true,
                         "type": "integer",
                         "format": "int32"
+                    },
+                    {
+                        "name": "key_secret",
+                        "in": "query",
+                        "type": "string",
+                        "required": false,
+                        "description": "Key secret provided by key server. This value is optional and is needed only if application is secured by license keys."
                     }
                 ],
                 "responses": {
@@ -433,6 +440,12 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/AppContentTorrentUrl"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
                         }
                     },
                     "404": {
@@ -443,8 +456,8 @@
         },
         "/apps/{app_secret}/versions/{version_id}/diff_torrent_url": {
             "get": {
-                "summary": "Get app version diff torrent url",
-                "description": "Get selected application version diff torrent url.",
+                "summary": "Gets app version diff torrent url",
+                "description": "Gets selected application version diff torrent url.",
                 "parameters": [
                     {
                         "name": "app_secret",
@@ -460,6 +473,13 @@
                         "required": true,
                         "type": "integer",
                         "format": "int32"
+                    },
+                    {
+                        "name": "key_secret",
+                        "in": "query",
+                        "type": "string",
+                        "required": false,
+                        "description": "Key secret provided by key server. This value is optional and is needed only if application is secured by license keys."
                     }
                 ],
                 "responses": {
@@ -477,8 +497,8 @@
         },
         "/apps/{app_secret}/versions/{version_id}/content_urls": {
             "get": {
-                "summary": "Get app version content urls",
-                "description": "Get selected application version content urls.",
+                "summary": "Gets app version content urls",
+                "description": "Gets selected application version content urls.",
                 "parameters": [
                     {
                         "name": "app_secret",
@@ -514,8 +534,8 @@
         },
         "/apps/{app_secret}/versions/{version_id}/diff_urls": {
             "get": {
-                "summary": "Get app version diff urls",
-                "description": "Get selected application version diff urls.",
+                "summary": "Gets app version diff urls",
+                "description": "Gets selected application version diff urls.",
                 "parameters": [
                     {
                         "name": "app_secret",
@@ -832,6 +852,14 @@
                 "message": {
                     "type": "string",
                     "description": "Human-readable error message"
+                },
+                "symbol": {
+                    "type": "string",
+                    "description": "Error symbol",
+                    "enum": [
+                        "KEY_SECRET_MISSING",
+                        "KEY_SECRET_UNKNOWN"
+                    ]
                 }
             }
         },
@@ -863,6 +891,10 @@
                 "patcher_secret": {
                     "type": "string",
                     "description": "The secret of patcher to use."
+                },
+                "use_keys": {
+                    "type": "boolean",
+                    "description": "If set to true, application needs to contact keys server to get valid key_secret for content download."
                 }
             }
         },
