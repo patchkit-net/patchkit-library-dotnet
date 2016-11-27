@@ -10,24 +10,6 @@ namespace PatchKit.Api
     public struct ApiConnectionSettings
     {
         /// <summary>
-        /// Returns default settings.
-        /// </summary>
-        public static ApiConnectionSettings CreateDefault()
-        {
-            return new ApiConnectionSettings
-            {
-                MainServer = "api.patchkit.net",
-                CacheServers =
-                    new[]
-                    {
-                        "api-cache-node-1.patchkit.net:43230", "api-cache-node-2.patchkit.net:43230",
-                        "api-cache-node-3.patchkit.net:43230"
-                    },
-                Timeout = 5000
-            };
-        }
-
-        /// <summary>
         /// Url to main API server.
         /// </summary>
         [NotNull] public string MainServer;

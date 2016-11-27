@@ -42,11 +42,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiConnection.cs" />
-    <Compile Include="ApiConnection.Generated.cs" />
+    <Compile Include="KeysApiConnection.cs" />
+    <Compile Include="KeysApiConnection.Generated.cs" />
+    <Compile Include="MainApiConnection.cs" />
     <Compile Include="ApiConnectionException.cs" />
     <Compile Include="ApiConnectionSettings.cs" />
     <Compile Include="ApiResponse.cs" />
     <Compile Include="IApiResponse.cs" />
+    <Compile Include="MainApiConnection.Generated.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ApiResponseException.cs" />
     <Compile Include="Utilities\UnixTimeConvert.cs" />

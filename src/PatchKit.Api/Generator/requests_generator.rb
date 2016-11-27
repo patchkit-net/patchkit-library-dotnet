@@ -2,9 +2,10 @@ require_relative "base_generator.rb"
 require_relative "get_request_generator.rb"
 
 class RequestsGenerator < BaseGenerator
-  def initialize(data)
+  def initialize(name, data)
     super()
     @data = data
+    @name = name
   end
 
   def write_methods
@@ -21,7 +22,7 @@ class RequestsGenerator < BaseGenerator
     write "using System.Collections.Generic;"
     write nil
     write_block "namespace PatchKit.Api" do
-      write_block "public partial class ApiConnection" do
+      write_block "public partial class #{@name}ApiConnection" do
         write_methods
       end
     end

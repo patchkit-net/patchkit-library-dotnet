@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace PatchKit.Api
 {
-    public partial class ApiConnection
+    public partial class MainApiConnection
     {
         /// <summary>
         /// Get detailes app info

@@ -5,9 +5,9 @@ using Newtonsoft.Json;
 namespace PatchKit.Api
 {
     /// <summary>
-    /// PatchKit Api Connection.
+    /// Base Api Connection.
     /// </summary>
-    public sealed partial class ApiConnection
+    public abstract class ApiConnection
     {
         private readonly ApiConnectionSettings _connectionSettings;
 
@@ -25,7 +25,7 @@ namespace PatchKit.Api
         /// <exception cref="System.ArgumentOutOfRangeException">
         /// connectionSettings - Timeout value is less than zero and is not <see cref="System.Threading.Timeout.Infinite" />.
         /// </exception>
-        public ApiConnection(ApiConnectionSettings connectionSettings)
+        protected ApiConnection(ApiConnectionSettings connectionSettings)
         {
             if (connectionSettings.MainServer == null)
             {
@@ -48,13 +48,9 @@ namespace PatchKit.Api
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ApiConnection"/> class.
+        /// Parses the response data to structure.
         /// </summary>
-        public ApiConnection() : this(ApiConnectionSettings.CreateDefault())
-        {
-        }
-
-        private T ParseResponse<T>(IApiResponse response)
+        protected T ParseResponse<T>(IApiResponse response)
         {
             return JsonConvert.DeserializeObject<T>(response.Body, _jsonSerializerSettings);
         }
