@@ -68,6 +68,7 @@ class GetRequestGenerator < BaseGenerator
   def write_method(request, response)
     type = resolve_type(response["schema"])
     name = upper_camel_case(request["summary"])
+    name.gsub!("Gets", "Get")
     parameters = resolve_method_parameters(request)
 
     write_block "public #{type} #{name}(#{parameters})" do
