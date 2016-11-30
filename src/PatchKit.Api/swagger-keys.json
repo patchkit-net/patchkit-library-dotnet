@@ -10,7 +10,7 @@
         }
     },
     "host": "keys.patchkit.net",
-    "basePath": "/1",
+    "basePath": "/v1",
     "paths": {
         "/keys": {
             "post": {
