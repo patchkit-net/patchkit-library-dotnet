@@ -13,7 +13,7 @@ namespace PatchKit.Api
         /// <param name="appSecret"></param>
         public LicenseKey GetKeyInfo(string key, string appSecret)
         {
-            string path = "/1/keys/{key}";
+            string path = "/v1/keys/{key}";
             List<string> queryList = new List<string>();
             path = path.Replace("{key}", key.ToString());
             queryList.Add("app_secret="+appSecret);
