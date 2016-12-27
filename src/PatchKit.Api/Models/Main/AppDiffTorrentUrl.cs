@@ -1,11 +1,11 @@
 using Newtonsoft.Json;
 
-namespace PatchKit.Api.Models
+namespace PatchKit.Api.Models.Main
 {
-    public struct AppContentTorrentUrl
+    public struct AppDiffTorrentUrl
     {
         /// <summary>
-        /// Url to content torrent file.
+        /// Url to diff torrent file.
         /// </summary>
         [JsonProperty("url")]
         public string Url;

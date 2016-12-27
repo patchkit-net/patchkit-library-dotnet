@@ -1,4 +1,4 @@
-using PatchKit.Api.Models;
+using PatchKit.Api.Models.Main;
 using System.Collections.Generic;
 
 namespace PatchKit.Api

@@ -1,11 +1,11 @@
 using Newtonsoft.Json;
 
-namespace PatchKit.Api.Models
+namespace PatchKit.Api.Models.Main
 {
-    public struct AppDiffUrl
+    public struct AppContentUrl
     {
         /// <summary>
-        /// Url to diff file.
+        /// Url to content file.
         /// </summary>
         [JsonProperty("url")]
         public string Url;

@@ -1,11 +1,11 @@
 using Newtonsoft.Json;
 
-namespace PatchKit.Api.Models
+namespace PatchKit.Api.Models.Main
 {
-    public struct AppDiffSummary
+    public struct AppContentSummary
     {
         /// <summary>
-        /// Diff size.
+        /// Content size.
         /// </summary>
         [JsonProperty("size")]
         public long Size;
@@ -23,22 +23,10 @@ namespace PatchKit.Api.Models
         public string CompressionMethod;
         
         /// <summary>
-        /// List of added files.
+        /// List of content files.
         /// </summary>
-        [JsonProperty("added_files")]
-        public string[] AddedFiles;
-        
-        /// <summary>
-        /// List of modified files.
-        /// </summary>
-        [JsonProperty("modified_files")]
-        public string[] ModifiedFiles;
-        
-        /// <summary>
-        /// List of removed files.
-        /// </summary>
-        [JsonProperty("removed_files")]
-        public string[] RemovedFiles;
+        [JsonProperty("files")]
+        public AppContentSummaryFile[] Files;
         
         [JsonProperty("hash_code")]
         public string HashCode;

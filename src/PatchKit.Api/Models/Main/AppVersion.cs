@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace PatchKit.Api.Models
+namespace PatchKit.Api.Models.Main
 {
     public struct AppVersion
     {
