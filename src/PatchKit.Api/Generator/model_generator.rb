@@ -1,8 +1,9 @@
 require_relative "base_generator.rb"
 
 class ModelGenerator < BaseGenerator
-  def initialize(name, data)
+  def initialize(api_name, name, data)
     super()
+    @api_name = api_name
     @name = name
     @data = data
   end
@@ -31,7 +32,7 @@ class ModelGenerator < BaseGenerator
 
     write "using Newtonsoft.Json;"
     write nil
-    write_block "namespace PatchKit.Api.Models" do
+    write_block "namespace PatchKit.Api.Models.#{@api_name}" do
       write_block "public struct #{@name}" do
         write_properties
       end

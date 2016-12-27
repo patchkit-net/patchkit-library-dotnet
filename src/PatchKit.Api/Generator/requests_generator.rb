@@ -18,7 +18,7 @@ class RequestsGenerator < BaseGenerator
   def generate
     super()
 
-    write "using PatchKit.Api.Models;"
+    write "using PatchKit.Api.Models.#{@name};"
     write "using System.Collections.Generic;"
     write nil
     write_block "namespace PatchKit.Api" do
