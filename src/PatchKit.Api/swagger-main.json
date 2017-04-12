@@ -1,13 +1,17 @@
 {
     "swagger": "2.0",
     "info": {
-        "version": "0.1.3",
+        "version": "0.3.1",
         "title": "PatchKit API",
         "contact": {
             "name": "API Support",
             "url": "http://patchkit.net/contact",
             "email": "contact@patchkit.net"
         }
+    },
+    "externalDocs": {
+        "description": "Changelog",
+        "url": "https://stackedit.io/viewer#!url=http://api-docs.internal.patchkit.net:9090/db/web-CHANGELOG.md"
     },
     "host": "api.patchkit.net",
     "basePath": "/1",
@@ -489,6 +493,12 @@
                             "$ref": "#/definitions/AppDiffTorrentUrl"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
                     "404": {
                         "description": "Version not found."
                     }
@@ -745,6 +755,354 @@
                 ]
             }
         },
+        "/keys/mark_distributed": {
+            "post": {
+                "summary": "Marks keys as distributed",
+                "description": "Marks multiple keys as distributed.",
+                "tags": [
+                    "Keys"
+                ],
+                "consumes": [
+                    "form/www-data"
+                ],
+                "parameters": [
+                    {
+                        "name": "ids",
+                        "type": "string",
+                        "description": "Identifiers delimited by coma character ','",
+                        "required": true,
+                        "in": "formData"
+                    },
+                    {
+                        "name": "api_key",
+                        "in": "query",
+                        "required": false,
+                        "type": "string",
+                        "description": "Application owner API key."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "404": {
+                        "description": "One or more keys not found"
+                    },
+                    "default": {
+                        "description": "Unknown error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/keys/mark_not_distributed": {
+            "post": {
+                "summary": "Marks keys as not distributed",
+                "description": "Marks multiple keys as not distributed.",
+                "tags": [
+                    "Keys"
+                ],
+                "consumes": [
+                    "form/www-data"
+                ],
+                "parameters": [
+                    {
+                        "name": "ids",
+                        "type": "string",
+                        "description": "Identifiers delimited by coma character ','",
+                        "required": true,
+                        "in": "formData"
+                    },
+                    {
+                        "name": "api_key",
+                        "in": "query",
+                        "required": false,
+                        "type": "string",
+                        "description": "Application owner API key."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "404": {
+                        "description": "One or more keys not found"
+                    },
+                    "default": {
+                        "description": "Unknown error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/keys/block": {
+            "post": {
+                "summary": "Blocks keys",
+                "description": "Blocks multiple keys",
+                "tags": [
+                    "Keys"
+                ],
+                "consumes": [
+                    "form/www-data"
+                ],
+                "parameters": [
+                    {
+                        "name": "ids",
+                        "type": "string",
+                        "description": "Identifiers delimited by coma character ','",
+                        "required": true,
+                        "in": "formData"
+                    },
+                    {
+                        "name": "api_key",
+                        "in": "query",
+                        "required": false,
+                        "type": "string",
+                        "description": "Application owner API key."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "404": {
+                        "description": "One or more keys not found"
+                    },
+                    "default": {
+                        "description": "Unknown error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/keys/unblock": {
+            "post": {
+                "summary": "Unblocks keys",
+                "description": "Unblocks multiple keys.",
+                "tags": [
+                    "Keys"
+                ],
+                "consumes": [
+                    "form/www-data"
+                ],
+                "parameters": [
+                    {
+                        "name": "ids",
+                        "type": "string",
+                        "description": "Identifiers delimited by coma character ','",
+                        "required": true,
+                        "in": "formData"
+                    },
+                    {
+                        "name": "api_key",
+                        "in": "query",
+                        "required": false,
+                        "type": "string",
+                        "description": "Application owner API key."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "404": {
+                        "description": "One or more keys not found"
+                    },
+                    "default": {
+                        "description": "Unknown error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/keys_collections/{id}/mark_distributed": {
+            "post": {
+                "summary": "Marks collection as distributed",
+                "description": "Marks all keys from collection invividually as ditributed. Keys already marked as distributed wouldn't be changed.",
+                "tags": [
+                    "Keys"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "type": "integer",
+                        "description": "Collection id",
+                        "required": true,
+                        "in": "path"
+                    },
+                    {
+                        "name": "api_key",
+                        "type": "string",
+                        "description": "Application owner API key.",
+                        "required": false,
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "404": {
+                        "description": "Collection not found"
+                    },
+                    "default": {
+                        "description": "Unknown error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/keys_collections/{id}/mark_not_distributed": {
+            "post": {
+                "summary": "Marks collection as distributed",
+                "description": "Marks all keys from collection invividually as ditributed. Keys already marked as distributed wouldn't be changed.",
+                "tags": [
+                    "Keys"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "type": "integer",
+                        "description": "Collection id",
+                        "required": true,
+                        "in": "path"
+                    },
+                    {
+                        "name": "api_key",
+                        "type": "string",
+                        "description": "Application owner API key.",
+                        "required": false,
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "404": {
+                        "description": "Collection not found"
+                    },
+                    "default": {
+                        "description": "Unknown error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/keys_collections/{id}/block": {
+            "post": {
+                "summary": "Blocks collection",
+                "description": "Blocks all keys from collection invidually.",
+                "tags": [
+                    "Keys"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "type": "integer",
+                        "description": "Collection id",
+                        "required": true,
+                        "in": "path"
+                    },
+                    {
+                        "name": "api_key",
+                        "type": "string",
+                        "description": "Application owner API key.",
+                        "required": false,
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "404": {
+                        "description": "Collection not found"
+                    },
+                    "default": {
+                        "description": "Unknown error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/keys_collections/{id}/unblock": {
+            "post": {
+                "summary": "Unblocks collection",
+                "description": "Unblocks all keys from collection individually.",
+                "tags": [
+                    "Keys"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "type": "integer",
+                        "description": "Collection id",
+                        "required": true,
+                        "in": "path"
+                    },
+                    {
+                        "name": "api_key",
+                        "type": "string",
+                        "description": "Application owner API key.",
+                        "required": false,
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "404": {
+                        "description": "Collection not found"
+                    },
+                    "default": {
+                        "description": "Unknown error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
         "/uploads": {
             "post": {
                 "summary": "Creates a new upload",
@@ -843,6 +1201,202 @@
                     }
                 }
             }
+        },
+        "/users/{user_id}/subscriptions/{subscription_id}/subscribe": {
+            "post": {
+                "summary": "Subscribes user to e-mail subscription.",
+                "description": "Need to be an adminsitrator to do that.",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "type": "integer",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "name": "subscription_id",
+                        "type": "integer",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "default": {
+                        "description": "Error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{user_id}/subscriptions/{subscription_id}/unsubscribe": {
+            "post": {
+                "summary": "Unsubscribes user from e-mail subscription",
+                "description": "Neet to be an administrator",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "type": "integer",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "name": "subscription_id",
+                        "type": "integer",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "default": {
+                        "description": "Error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/me/subscriptions/{subscription_id}/subscribe": {
+            "post": {
+                "summary": "Subscribes to e-mail subscription",
+                "description": "This call can be only executed in the web browser.",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "name": "subscription_id",
+                        "type": "integer",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "default": {
+                        "description": "Error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/me/subscriptions/{subscription_id}/unsubscribe": {
+            "post": {
+                "summary": "Unsubscribes from e-mail subscription",
+                "description": "This call can be only executed in the web browser.",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "name": "subscription_id",
+                        "type": "integer",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "default": {
+                        "description": "Error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/launchers/{platform}": {
+            "put": {
+                "summary": "Publishes a new launcher",
+                "tags": [
+                    "Launchers",
+                    "Admin"
+                ],
+                "consumes": [
+                    "www/form-data"
+                ],
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "type": "string",
+                        "description": "Platform",
+                        "enum": [
+                            "windows_x86",
+                            "windows_x86_64",
+                            "mac_x86",
+                            "mac_x86_64",
+                            "linux_x86",
+                            "linux_x86_64"
+                        ]
+                    },
+                    {
+                        "name": "file",
+                        "in": "formData",
+                        "required": true,
+                        "type": "file",
+                        "description": "Zip file with application content."
+                    },
+                    {
+                        "name": "api_key",
+                        "in": "query",
+                        "description": "Admin API key.",
+                        "type": "string",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Processing error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "401": {
+                        "description": "API key missing",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Not authorized.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -857,8 +1411,7 @@
                     "type": "string",
                     "description": "Error symbol",
                     "enum": [
-                        "KEY_SECRET_MISSING",
-                        "KEY_SECRET_UNKNOWN"
+                        "INVALID_KEY_SECRET"
                     ]
                 }
             }
@@ -888,6 +1441,14 @@
                     "type": "string",
                     "description": "Application name"
                 },
+                "display_name": {
+                    "type": "string",
+                    "description": "Application display name."
+                },
+                "author": {
+                    "type": "string",
+                    "description": "Application author."
+                },
                 "patcher_secret": {
                     "type": "string",
                     "description": "The secret of patcher to use."
@@ -895,6 +1456,13 @@
                 "use_keys": {
                     "type": "boolean",
                     "description": "If set to true, application needs to contact keys server to get valid key_secret for content download."
+                },
+                "publish_method": {
+                    "type": "string",
+                    "enum": [
+                        "all",
+                        "http_only"
+                    ]
                 }
             }
         },
@@ -924,13 +1492,39 @@
                     "type": "string",
                     "description": "Guid of content file."
                 },
+                "content_meta_guid": {
+                    "type": "string",
+                    "description": "Guid of content meta file if available."
+                },
                 "diff_guid": {
                     "type": "string",
                     "description": "Guid of diff file or null if there's no diff."
                 },
+                "diff_meta_guid": {
+                    "type": "string",
+                    "description": "Guid of diff meta file if available."
+                },
                 "draft": {
                     "type": "boolean",
                     "description": "Set to true if this version is a draft version."
+                },
+                "main_executable": {
+                    "type": "string",
+                    "description": "Main executable relative path without slash at the beginning."
+                },
+                "main_executable_args": {
+                    "type": "array",
+                    "description": "Main executable arguments",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "ignored_files": {
+                    "type": "array",
+                    "description": "Relative list of paths that should be ignored for local data consistency.",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

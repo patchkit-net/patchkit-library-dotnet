@@ -17,6 +17,18 @@ namespace PatchKit.Api.Models.Main
         public string Name;
         
         /// <summary>
+        /// Application display name.
+        /// </summary>
+        [JsonProperty("display_name")]
+        public string DisplayName;
+        
+        /// <summary>
+        /// Application author.
+        /// </summary>
+        [JsonProperty("author")]
+        public string Author;
+        
+        /// <summary>
         /// The secret of patcher to use.
         /// </summary>
         [JsonProperty("patcher_secret")]
@@ -27,6 +39,9 @@ namespace PatchKit.Api.Models.Main
         /// </summary>
         [JsonProperty("use_keys")]
         public bool UseKeys;
+        
+        [JsonProperty("publish_method")]
+        public string PublishMethod;
         
     }
 }

@@ -35,16 +35,46 @@ namespace PatchKit.Api.Models.Main
         public string ContentGuid;
         
         /// <summary>
+        /// Guid of content meta file if available.
+        /// </summary>
+        [JsonProperty("content_meta_guid")]
+        public string ContentMetaGuid;
+        
+        /// <summary>
         /// Guid of diff file or null if there's no diff.
         /// </summary>
         [JsonProperty("diff_guid")]
         public string DiffGuid;
         
         /// <summary>
+        /// Guid of diff meta file if available.
+        /// </summary>
+        [JsonProperty("diff_meta_guid")]
+        public string DiffMetaGuid;
+        
+        /// <summary>
         /// Set to true if this version is a draft version.
         /// </summary>
         [JsonProperty("draft")]
         public bool Draft;
+        
+        /// <summary>
+        /// Main executable relative path without slash at the beginning.
+        /// </summary>
+        [JsonProperty("main_executable")]
+        public string MainExecutable;
+        
+        /// <summary>
+        /// Main executable arguments
+        /// </summary>
+        [JsonProperty("main_executable_args")]
+        public string[] MainExecutableArgs;
+        
+        /// <summary>
+        /// Relative list of paths that should be ignored for local data consistency.
+        /// </summary>
+        [JsonProperty("ignored_files")]
+        public string[] IgnoredFiles;
         
     }
 }
