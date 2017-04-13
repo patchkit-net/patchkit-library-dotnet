@@ -532,7 +532,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/AppContentUrl"
+                                "$ref": "#/definitions/ContentUrl"
                             }
                         }
                     },
@@ -569,7 +569,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/AppDiffUrl"
+                                "$ref": "#/definitions/ContentUrl"
                             }
                         }
                     },
@@ -1663,21 +1663,25 @@
                 }
             }
         },
-        "AppContentUrl": {
+        "ContentUrl": {
             "type": "object",
             "properties": {
                 "url": {
                     "type": "string",
                     "description": "Url to content file."
-                }
-            }
-        },
-        "AppDiffUrl": {
-            "type": "object",
-            "properties": {
-                "url": {
+                },
+                "meta_url": {
                     "type": "string",
-                    "description": "Url to diff file."
+                    "description": "Url to meta file if available."
+                },
+                "region": {
+                    "type": "string",
+                    "description": "Region name of this mirror server."
+                },
+                "load": {
+                    "type": "number",
+                    "format": "double",
+                    "description": "Value of recent server load (usage). Servers with lower load should be prioritorized."
                 }
             }
         },

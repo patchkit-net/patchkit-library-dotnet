@@ -44,6 +44,19 @@ class BaseGenerator
       resolve_int_type(type)
     when "array"
       resolve_array_type(type)
+    when "number"
+      resolve_number_type(type)
+    else
+      raise "Cannot resolve base type of #{type}"
+    end
+  end
+
+  def resolve_number_type(type)
+    case type['format']
+    when 'float'
+      'float'
+    when 'double'
+      'double'
     else
       raise "Cannot resolve base type of #{type}"
     end
