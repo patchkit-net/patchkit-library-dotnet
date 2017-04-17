@@ -8,7 +8,7 @@
 /src/PatchKit.Api/obj/
 /src/PatchKit.Api.Tests/bin/
 /src/PatchKit.Api.Tests/obj/
-/src/.idea.PatchKit/
+/src/.idea*
 /src/PatchKit.Async/bin/
 /src/PatchKit.Async/obj/
 /src/PatchKit.Async.Tests/bin/
