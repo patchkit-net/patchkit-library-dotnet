@@ -15,3 +15,5 @@
 /src/PatchKit.Async.Tests/obj/
 /docs/Help/
 /docs/.vs/
+/src/Test/obj/
+/src/Test/bin/

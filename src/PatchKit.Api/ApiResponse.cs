@@ -8,7 +8,7 @@ namespace PatchKit.Api
 {
     internal class ApiResponse : IApiResponse
     {
-        public ApiResponse(HttpWebResponse httpWebResponse)
+        public ApiResponse(IHttpWebResponse httpWebResponse)
         {
             HttpWebResponse = httpWebResponse;
 
@@ -27,7 +27,7 @@ namespace PatchKit.Api
             }
         }
 
-        public HttpWebResponse HttpWebResponse { get; private set; }
+        public IHttpWebResponse HttpWebResponse { get; private set; }
 
         public string Body { get; private set; }
 

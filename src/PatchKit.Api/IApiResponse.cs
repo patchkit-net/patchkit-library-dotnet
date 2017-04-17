@@ -13,7 +13,7 @@ namespace PatchKit.Api
         /// <summary>
         /// HTTP web response.
         /// </summary>
-        HttpWebResponse HttpWebResponse { get; }
+        IHttpWebResponse HttpWebResponse { get; }
 
         /// <summary>
         /// Response body.

@@ -42,6 +42,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiConnection.cs" />
+    <Compile Include="IHttpWebRequest.cs" />
+    <Compile Include="IHttpWebRequestFactory.cs" />
+    <Compile Include="IHttpWebResponse.cs" />
     <Compile Include="KeysApiConnection.cs" />
     <Compile Include="KeysApiConnection.Generated.cs" />
     <Compile Include="MainApiConnection.cs" />
@@ -54,6 +57,9 @@
     <Compile Include="ApiResponseException.cs" />
     <Compile Include="Utilities\UnixTimeConvert.cs" />
     <Compile Include="Models\*\*.cs" />
+    <Compile Include="WrapHttpWebRequest.cs" />
+    <Compile Include="WrapHttpWebRequestFactory.cs" />
+    <Compile Include="WrapHttpWebResponse.cs" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

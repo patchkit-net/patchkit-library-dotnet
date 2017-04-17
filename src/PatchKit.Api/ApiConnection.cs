@@ -7,11 +7,13 @@ namespace PatchKit.Api
     /// <summary>
     /// Base Api Connection.
     /// </summary>
-    public abstract class ApiConnection
+    public class ApiConnection
     {
         private readonly ApiConnectionSettings _connectionSettings;
 
         private readonly JsonSerializerSettings _jsonSerializerSettings;
+
+        public IHttpWebRequestFactory HttpWebRequestFactory = new WrapHttpWebRequestFactory();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApiConnection"/> class.
@@ -25,7 +27,7 @@ namespace PatchKit.Api
         /// <exception cref="System.ArgumentOutOfRangeException">
         /// connectionSettings - Timeout value is less than zero and is not <see cref="System.Threading.Timeout.Infinite" />.
         /// </exception>
-        protected ApiConnection(ApiConnectionSettings connectionSettings)
+        public ApiConnection(ApiConnectionSettings connectionSettings)
         {
             if (connectionSettings.MainServer == null)
             {
@@ -55,49 +57,14 @@ namespace PatchKit.Api
             return JsonConvert.DeserializeObject<T>(response.Body, _jsonSerializerSettings);
         }
 
-        private bool IsResponseValid(IApiResponse response)
+        private IHttpWebRequest CreateHttpRequest(Uri uri)
         {
-            if ((int)response.HttpWebResponse.StatusCode >= 400)
-            {
-                return false;
-            }
-
-            return true;
+            IHttpWebRequest httpWebRequest = HttpWebRequestFactory.Create(uri.ToString());
+            return httpWebRequest;
         }
 
-        private void ThrowIfResponseNotValid(IApiResponse response)
-        {
-            if (!IsResponseValid(response))
-            {
-                throw new ApiResponseException((int)response.HttpWebResponse.StatusCode);
-            }
-        }
-
-        private HttpWebRequest CreateHttpRequest(Uri uri)
-        {
-            var httpRequest = WebRequest.Create(uri.ToString()) as HttpWebRequest;
-
-            if (httpRequest == null)
-            {
-                throw new FormatException(string.Format("Invaild API uri - {0}", uri));
-            }
-
-            return httpRequest;
-        }
-
-        private bool TryGetHttpResponse(HttpWebRequest httpRequest, out HttpWebResponse httpResponse)
-        {
-            httpResponse = (HttpWebResponse)httpRequest.GetResponse();
-
-            if (httpResponse.StatusCode == HttpStatusCode.InternalServerError)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        private bool TryGetResponse(string host, string path, string query, int timeout, out IApiResponse response)
+        private bool TryGetResponse(string host, string path, string query, int timeout, ServerType serverType,
+            out IApiResponse response)
         {
             Uri uri = new UriBuilder
             {
@@ -115,16 +82,20 @@ namespace PatchKit.Api
 
             try
             {
-                HttpWebResponse httpResponse;
-
-                if (!TryGetHttpResponse(httpRequest, out httpResponse))
+                var httpResponse = httpRequest.GetResponse();
+                if (IsResponseValid(httpResponse, serverType))
                 {
-                    return false;
+                    response = new ApiResponse(httpResponse);
+                    return true;
                 }
 
-                response = new ApiResponse(httpResponse);
+                if (IsResponseUnexpectedError(httpResponse, serverType))
+                {
+                    throw new ApiConnectionException("Server '" + httpRequest.Address.Host + "' returned code " +
+                                                     (int) httpResponse.StatusCode);
+                }
 
-                return true;
+                return false;
             }
             catch (WebException webException)
             {
@@ -136,30 +107,58 @@ namespace PatchKit.Api
             }
         }
 
+        private bool IsResponseValid(IHttpWebResponse httpResponse, ServerType serverType)
+        {
+            switch (serverType)
+            {
+                case ServerType.MainServer:
+                    return IsStatusCodeOK(httpResponse.StatusCode);
+                case ServerType.CacheServer:
+                    return httpResponse.StatusCode == HttpStatusCode.OK;
+                default:
+                    throw new ArgumentOutOfRangeException("serverType", serverType, null);
+            }
+        }
+
+        private bool IsResponseUnexpectedError(IHttpWebResponse httpResponse, ServerType serverType)
+        {
+            switch (serverType)
+            {
+                case ServerType.MainServer:
+                    return !IsStatusCodeOK(httpResponse.StatusCode) &&
+                           !IsStatusCodeServerError(httpResponse.StatusCode);
+                case ServerType.CacheServer:
+                    return false; // ignore any api cache error
+                default:
+                    throw new ArgumentOutOfRangeException("serverType", serverType, null);
+            }
+        }
+
+        private bool IsStatusCodeOK(HttpStatusCode statusCode)
+        {
+            return IsWithin((int) statusCode, 200, 299);
+        }
+
+        private bool IsStatusCodeServerError(HttpStatusCode statusCode)
+        {
+            return IsWithin((int) statusCode, 500, 599);
+        }
+
+        private bool IsWithin(int value, int min, int max)
+        {
+            return value >= min && value <= max;
+        }
+
         private bool TryGetResponseFromCacheServer(string host, string path, string query, int timeout,
             out IApiResponse response)
         {
-            if (TryGetResponse(host, path, query, timeout, out response))
-            {
-                if (IsResponseValid(response))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return TryGetResponse(host, path, query, timeout, ServerType.CacheServer, out response);
         }
 
         private bool TryGetResponseFromMainServer(string path, string query, int timeout, out IApiResponse response)
         {
-            if (TryGetResponse(_connectionSettings.MainServer, path, query, timeout, out response))
-            {
-                ThrowIfResponseNotValid(response);
-
-                return true;
-            }
-
-            return false;
+            return TryGetResponse(_connectionSettings.MainServer, path, query, timeout, ServerType.MainServer,
+                out response);
         }
 
         private bool TryGetResponse(string path, string query, int timeout, out IApiResponse apiResponse)
@@ -199,16 +198,21 @@ namespace PatchKit.Api
             if (!TryGetResponse(path, query, timeout, out response))
             {
                 // Double timeout and try again.
-
                 timeout *= 2;
 
                 if (!TryGetResponse(path, query, timeout, out response))
                 {
-                    throw new ApiConnectionException();
+                    throw new ApiConnectionException("Unable to connect to API.");
                 }
             }
 
             return response;
+        }
+
+        private enum ServerType
+        {
+            MainServer,
+            CacheServer,
         }
     }
 }

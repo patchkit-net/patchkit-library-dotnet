@@ -8,7 +8,7 @@ namespace PatchKit.Api
     /// <seealso cref="System.Exception" />
     public class ApiConnectionException : Exception
     {
-        internal ApiConnectionException() : base("Unable to connect to API.")
+        internal ApiConnectionException(string reason) : base(reason)
         {
         }
     }
