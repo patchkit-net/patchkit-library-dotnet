@@ -5,10 +5,22 @@ namespace PatchKit.Api.Models.Main
     public struct AppContentSummary
     {
         /// <summary>
+        /// Content summary version.
+        /// </summary>
+        [JsonProperty("version")]
+        public string Version;
+
+        /// <summary>
         /// Content size.
         /// </summary>
         [JsonProperty("size")]
         public long Size;
+
+        /// <summary>
+        /// Uncompressed content data
+        /// </summary>
+        [JsonProperty("uncompressed_size")]
+        public long UncompressedSize;
         
         /// <summary>
         /// Encryption method.
