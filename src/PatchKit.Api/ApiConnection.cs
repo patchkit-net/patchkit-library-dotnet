@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Security.Cryptography;
 using Newtonsoft.Json;
 
 namespace PatchKit.Api
@@ -66,12 +67,23 @@ namespace PatchKit.Api
         private bool TryGetResponse(string host, string path, string query, int timeout, ServerType serverType,
             out IApiResponse response)
         {
+            int port;
+            if (_connectionSettings.Port == 0)
+            {
+                port = _connectionSettings.UseHttps ? 443 : 80;
+            }
+            else
+            {
+                port = _connectionSettings.Port;
+            }
+            
             Uri uri = new UriBuilder
             {
-                Scheme = "http",
+                Scheme = _connectionSettings.UseHttps ? "https" : "http",
                 Host = host,
                 Path = path,
-                Query = query
+                Query = query,
+                Port = port
             }.Uri;
 
             var httpRequest = CreateHttpRequest(uri);

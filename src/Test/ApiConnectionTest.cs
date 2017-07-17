@@ -39,6 +39,42 @@ namespace PatchKit.Api
         }
 
         [Test]
+        public void TestHttps()
+        {
+            _apiConnectionSettings.UseHttps = true;
+            var apiConnection = new ApiConnection(_apiConnectionSettings);
+
+            var webRequest = Substitute.For<IHttpWebRequest>();
+            var factory = Substitute.For<IHttpWebRequestFactory>();
+            apiConnection.HttpWebRequestFactory = factory;
+            factory.Create("https://main_server/path?query").Returns(webRequest);
+
+            var webResponse = CreateSimpleWebResponse("test");
+            webRequest.GetResponse().Returns(webResponse);
+
+            var apiResponse = apiConnection.GetResponse("/path", "query");
+            Assert.AreEqual("test", apiResponse.Body);
+        }
+        
+        [Test]
+        public void TestCustomPort()
+        {
+            _apiConnectionSettings.Port = 81;
+            var apiConnection = new ApiConnection(_apiConnectionSettings);
+
+            var webRequest = Substitute.For<IHttpWebRequest>();
+            var factory = Substitute.For<IHttpWebRequestFactory>();
+            apiConnection.HttpWebRequestFactory = factory;
+            factory.Create("http://main_server:81/path?query").Returns(webRequest);
+
+            var webResponse = CreateSimpleWebResponse("test");
+            webRequest.GetResponse().Returns(webResponse);
+
+            var apiResponse = apiConnection.GetResponse("/path", "query");
+            Assert.AreEqual("test", apiResponse.Body);
+        }
+
+        [Test]
         public void TestApiCache500()
         {
             // test how connection will behave on 500 error

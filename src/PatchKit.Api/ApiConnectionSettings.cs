@@ -38,5 +38,15 @@ namespace PatchKit.Api
                 return Timeout*(1 + CacheServers.Length);
             }
         }
+
+        /// <summary>
+        /// Set to true to use https instead of http.
+        /// </summary>
+        public bool UseHttps;
+
+        /// <summary>
+        /// Port number to use. Defaults to 80 for http and 443 for https.
+        /// </summary>
+        public int Port;
     }
 }
