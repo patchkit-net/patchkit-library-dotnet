@@ -58,6 +58,18 @@ namespace PatchKit.Api.Models.Main
         [JsonProperty("draft")]
         public bool Draft;
         
+        [JsonProperty("pending_publish")]
+        public bool PendingPublish;
+        
+        [JsonProperty("published")]
+        public bool Published;
+        
+        /// <summary>
+        /// If pending_publish is true, this number will indicate the publishing progress.
+        /// </summary>
+        [JsonProperty("publish_progress")]
+        public float PublishProgress;
+        
         /// <summary>
         /// Main executable relative path without slash at the beginning.
         /// </summary>
@@ -75,6 +87,18 @@ namespace PatchKit.Api.Models.Main
         /// </summary>
         [JsonProperty("ignored_files")]
         public string[] IgnoredFiles;
+        
+        /// <summary>
+        /// Set to true if version will be published after successfull processing.
+        /// </summary>
+        [JsonProperty("publish_when_processed")]
+        public bool PublishWhenProcessed;
+        
+        [JsonProperty("processing_started_at")]
+        public string ProcessingStartedAt;
+        
+        [JsonProperty("processing_finished_at")]
+        public string ProcessingFinishedAt;
         
     }
 }

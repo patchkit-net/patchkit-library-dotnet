@@ -1,1697 +1,1852 @@
 {
-    "swagger": "2.0",
-    "info": {
-        "version": "0.3.1",
-        "title": "PatchKit API",
-        "contact": {
-            "name": "API Support",
-            "url": "http://patchkit.net/contact",
-            "email": "contact@patchkit.net"
-        }
-    },
-    "externalDocs": {
-        "description": "Changelog",
-        "url": "https://stackedit.io/viewer#!url=http://api-docs.internal.patchkit.net:9090/db/web-CHANGELOG.md"
-    },
-    "host": "api.patchkit.net",
-    "basePath": "/1",
-    "paths": {
-        "/apps/{app_secret}": {
-            "get": {
-                "summary": "Get application info",
-                "description": "Gets detailes app info",
-                "tags": [
-                    "App"
-                ],
-                "parameters": [
-                    {
-                        "name": "app_secret",
-                        "in": "path",
-                        "description": "Secret of an application.",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/App"
-                        }
-                    },
-                    "404": {
-                        "description": "Application not found.",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    },
-                    "default": {
-                        "description": "Unknown error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/apps/{app_secret}/changelog": {
-            "get": {
-                "summary": "Gets app changelog",
-                "description": "Gets a complete changelog of an application.",
-                "parameters": [
-                    {
-                        "name": "app_secret",
-                        "in": "path",
-                        "description": "Secret of an application.",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "tags": [
-                    "App"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "version_id": {
-                                        "type": "integer",
-                                        "format": "int32",
-                                        "description": "Version id.",
-                                        "minimum": 1
-                                    },
-                                    "version_label": {
-                                        "type": "string",
-                                        "description": "Human readable label."
-                                    },
-                                    "changes": {
-                                        "type": "string",
-                                        "description": "Changes description."
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Application not found."
-                    }
-                }
-            }
-        },
-        "/apps/{app_secret}/versions": {
-            "get": {
-                "summary": "Gets app version list",
-                "description": "Gets the basic information for all published versions. When API Key is provided, draft version information is included if draft version exists.",
-                "parameters": [
-                    {
-                        "name": "app_secret",
-                        "in": "path",
-                        "description": "Secret of an application.",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "api_key",
-                        "in": "query",
-                        "required": false,
-                        "type": "string",
-                        "description": "Application owner API key."
-                    }
-                ],
-                "tags": [
-                    "App",
-                    "Version"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/AppVersion"
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "summary": "Creates app version",
-                "description": "Creates a new version if there's no draft version yet.",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "parameters": [
-                    {
-                        "name": "app_secret",
-                        "in": "path",
-                        "description": "Secret of an application.",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "api_key",
-                        "in": "query",
-                        "required": true,
-                        "type": "string",
-                        "description": "Application owner API key."
-                    },
-                    {
-                        "name": "label",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "description": "New version label."
-                    },
-                    {
-                        "name": "changelog",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "description": "Description of changes."
-                    }
-                ],
-                "tags": [
-                    "App",
-                    "Version"
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Version created successfully.",
-                        "schema": {
-                            "$ref": "#/definitions/AppVersion"
-                        }
-                    },
-                    "403": {
-                        "description": "API key invalid or draft version already exists."
-                    },
-                    "404": {
-                        "description": "Application not found."
-                    }
-                }
-            }
-        },
-        "/apps/{app_secret}/versions/latest": {
-            "get": {
-                "summary": "Gets app latest app version",
-                "description": "Gets latest application version object.",
-                "parameters": [
-                    {
-                        "name": "app_secret",
-                        "in": "path",
-                        "description": "Secret of an application.",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/AppVersion"
-                        }
-                    }
-                }
-            }
-        },
-        "/apps/{app_secret}/versions/latest/id": {
-            "get": {
-                "summary": "Gets app latest app version id",
-                "description": "Gets latest application version id.",
-                "parameters": [
-                    {
-                        "name": "app_secret",
-                        "in": "path",
-                        "description": "Secret of an application.",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/AppVersionId"
-                        }
-                    }
-                }
-            }
-        },
-        "/apps/{app_secret}/versions/{version_id}": {
-            "get": {
-                "summary": "Gets app version",
-                "description": "Gets selected version object. If API key is provided, can get the information about draft version.",
-                "parameters": [
-                    {
-                        "name": "app_secret",
-                        "in": "path",
-                        "description": "Secret of an application.",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "version_id",
-                        "in": "path",
-                        "description": "Version id.",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    {
-                        "name": "api_key",
-                        "in": "query",
-                        "required": false,
-                        "type": "string",
-                        "description": "Application owner API key."
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/AppVersion"
-                        }
-                    },
-                    "403": {
-                        "description": "Invalid API key."
-                    },
-                    "404": {
-                        "description": "Version not found."
-                    }
-                }
-            },
-            "patch": {
-                "summary": "Updates app version",
-                "description": "Updates selected version properties. You can update any number of properties, because you're not required to pass all of them. Omited properties will remain unchanged.",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "parameters": [
-                    {
-                        "name": "app_secret",
-                        "in": "path",
-                        "description": "Secret of an application.",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "version_id",
-                        "in": "path",
-                        "description": "Version id.",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    {
-                        "name": "api_key",
-                        "in": "query",
-                        "required": true,
-                        "type": "string",
-                        "description": "Application owner API key."
-                    },
-                    {
-                        "name": "label",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "description": "Version label."
-                    },
-                    {
-                        "name": "changelog",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "description": "Description of changes."
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Version updated successfully.",
-                        "schema": {
-                            "$ref": "#/definitions/Job"
-                        }
-                    },
-                    "403": {
-                        "description": "Invalid API key."
-                    },
-                    "404": {
-                        "description": "Version not found."
-                    }
-                }
-            }
-        },
-        "/apps/{app_secret}/versions/{version_id}/content_summary": {
-            "get": {
-                "summary": "Gets app version content summary",
-                "description": "Gets selected version content summary.",
-                "parameters": [
-                    {
-                        "name": "app_secret",
-                        "in": "path",
-                        "description": "Secret of an application.",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "version_id",
-                        "in": "path",
-                        "description": "Version id.",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int32"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/AppContentSummary"
-                        }
-                    },
-                    "404": {
-                        "description": "Version not found."
-                    }
-                }
-            }
-        },
-        "/apps/{app_secret}/versions/{version_id}/diff_summary": {
-            "get": {
-                "summary": "Gets app version diff summary",
-                "description": "Gets selected version diff summary.",
-                "parameters": [
-                    {
-                        "name": "app_secret",
-                        "in": "path",
-                        "description": "Secret of an application.",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "version_id",
-                        "in": "path",
-                        "description": "Version id.",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int32"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/AppDiffSummary"
-                        }
-                    },
-                    "404": {
-                        "description": "Version not found."
-                    }
-                }
-            }
-        },
-        "/apps/{app_secret}/versions/{version_id}/content_torrent_url": {
-            "get": {
-                "summary": "Gets app version content torrent url",
-                "description": "Gets selected application version content torrent url.",
-                "parameters": [
-                    {
-                        "name": "app_secret",
-                        "in": "path",
-                        "description": "Secret of an application.",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "version_id",
-                        "in": "path",
-                        "description": "Version id.",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    {
-                        "name": "key_secret",
-                        "in": "query",
-                        "type": "string",
-                        "required": false,
-                        "description": "Key secret provided by key server. This value is optional and is needed only if application is secured by license keys."
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/AppContentTorrentUrl"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Version not found."
-                    }
-                }
-            }
-        },
-        "/apps/{app_secret}/versions/{version_id}/diff_torrent_url": {
-            "get": {
-                "summary": "Gets app version diff torrent url",
-                "description": "Gets selected application version diff torrent url.",
-                "parameters": [
-                    {
-                        "name": "app_secret",
-                        "in": "path",
-                        "description": "Secret of an application.",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "version_id",
-                        "in": "path",
-                        "description": "Version id.",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    {
-                        "name": "key_secret",
-                        "in": "query",
-                        "type": "string",
-                        "required": false,
-                        "description": "Key secret provided by key server. This value is optional and is needed only if application is secured by license keys."
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/AppDiffTorrentUrl"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Version not found."
-                    }
-                }
-            }
-        },
-        "/apps/{app_secret}/versions/{version_id}/content_urls": {
-            "get": {
-                "summary": "Gets app version content urls",
-                "description": "Gets selected application version content urls.",
-                "parameters": [
-                    {
-                        "name": "app_secret",
-                        "in": "path",
-                        "description": "Secret of an application.",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "version_id",
-                        "in": "path",
-                        "description": "Version id.",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int32"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/ContentUrl"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Version not found."
-                    }
-                }
-            }
-        },
-        "/apps/{app_secret}/versions/{version_id}/diff_urls": {
-            "get": {
-                "summary": "Gets app version diff urls",
-                "description": "Gets selected application version diff urls.",
-                "parameters": [
-                    {
-                        "name": "app_secret",
-                        "in": "path",
-                        "description": "Secret of an application.",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "version_id",
-                        "in": "path",
-                        "description": "Version id.",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int32"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/ContentUrl"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Version not found."
-                    }
-                }
-            }
-        },
-        "/apps/{app_secret}/versions/{version_id}/content_file": {
-            "put": {
-                "summary": "Updates app version content file",
-                "description": "Updates the draft version with given content file. Version needs to be processed afterwards, so a job guid is returned. Should file or upload_id be passed.",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "parameters": [
-                    {
-                        "name": "app_secret",
-                        "in": "path",
-                        "description": "Secret of an application.",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "version_id",
-                        "in": "path",
-                        "description": "Draft version id.",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    {
-                        "name": "api_key",
-                        "in": "query",
-                        "required": true,
-                        "type": "string",
-                        "description": "Application owner API key."
-                    },
-                    {
-                        "name": "file",
-                        "in": "formData",
-                        "required": false,
-                        "type": "file",
-                        "description": "Zip file with application content."
-                    },
-                    {
-                        "name": "upload_id",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "description": "Id of upload entity."
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "File queued to be processed.",
-                        "schema": {
-                            "$ref": "#/definitions/Job"
-                        }
-                    },
-                    "403": {
-                        "description": "Invalid secret or version is not a draft version."
-                    },
-                    "404": {
-                        "description": "Version not found"
-                    }
-                },
-                "tags": [
-                    "App",
-                    "Version"
-                ]
-            }
-        },
-        "/apps/{app_secret}/versions/{version_id}/diff_file": {
-            "put": {
-                "summary": "Updates version diff file",
-                "description": "Updates the draft version with given diff file. Version needs to be processed afterwards, so a job guid is returned. Should file or upload_id be passed.",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "parameters": [
-                    {
-                        "name": "app_secret",
-                        "in": "path",
-                        "description": "Secret of an application.",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "version_id",
-                        "in": "path",
-                        "description": "Draft version id.",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    {
-                        "name": "api_key",
-                        "in": "query",
-                        "required": true,
-                        "type": "string",
-                        "description": "Application owner API key."
-                    },
-                    {
-                        "name": "file",
-                        "in": "formData",
-                        "required": false,
-                        "type": "file",
-                        "description": "Zip file with application binary diffs."
-                    },
-                    {
-                        "name": "upload_id",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "description": "Id of upload entity."
-                    },
-                    {
-                        "name": "diff_summary",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "description": "Required when diff_file is set. Using diff summary format."
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "File queued to be processed.",
-                        "schema": {
-                            "$ref": "#/definitions/Job"
-                        }
-                    },
-                    "403": {
-                        "description": "Invalid secret or version is not a draft version."
-                    },
-                    "404": {
-                        "description": "version not found"
-                    }
-                },
-                "tags": [
-                    "App",
-                    "Version"
-                ]
-            }
-        },
-        "/apps/{app_secret}/versions/{version_id}/publish": {
-            "put": {
-                "summary": "Publishes version",
-                "description": "Publishes selected version. Given version should be a draft version.",
-                "parameters": [
-                    {
-                        "name": "app_secret",
-                        "in": "path",
-                        "description": "Secret of an application.",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "version_id",
-                        "in": "path",
-                        "description": "Draft version id.",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    {
-                        "name": "api_key",
-                        "in": "query",
-                        "required": true,
-                        "type": "string",
-                        "description": "Application owner API key."
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Version published sucessfully."
-                    }
-                },
-                "tags": [
-                    "App",
-                    "Version"
-                ]
-            }
-        },
-        "/keys/mark_distributed": {
-            "post": {
-                "summary": "Marks keys as distributed",
-                "description": "Marks multiple keys as distributed.",
-                "tags": [
-                    "Keys"
-                ],
-                "consumes": [
-                    "form/www-data"
-                ],
-                "parameters": [
-                    {
-                        "name": "ids",
-                        "type": "string",
-                        "description": "Identifiers delimited by coma character ','",
-                        "required": true,
-                        "in": "formData"
-                    },
-                    {
-                        "name": "api_key",
-                        "in": "query",
-                        "required": false,
-                        "type": "string",
-                        "description": "Application owner API key."
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "403": {
-                        "description": "Not authorized"
-                    },
-                    "404": {
-                        "description": "One or more keys not found"
-                    },
-                    "default": {
-                        "description": "Unknown error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/keys/mark_not_distributed": {
-            "post": {
-                "summary": "Marks keys as not distributed",
-                "description": "Marks multiple keys as not distributed.",
-                "tags": [
-                    "Keys"
-                ],
-                "consumes": [
-                    "form/www-data"
-                ],
-                "parameters": [
-                    {
-                        "name": "ids",
-                        "type": "string",
-                        "description": "Identifiers delimited by coma character ','",
-                        "required": true,
-                        "in": "formData"
-                    },
-                    {
-                        "name": "api_key",
-                        "in": "query",
-                        "required": false,
-                        "type": "string",
-                        "description": "Application owner API key."
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "403": {
-                        "description": "Not authorized"
-                    },
-                    "404": {
-                        "description": "One or more keys not found"
-                    },
-                    "default": {
-                        "description": "Unknown error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/keys/block": {
-            "post": {
-                "summary": "Blocks keys",
-                "description": "Blocks multiple keys",
-                "tags": [
-                    "Keys"
-                ],
-                "consumes": [
-                    "form/www-data"
-                ],
-                "parameters": [
-                    {
-                        "name": "ids",
-                        "type": "string",
-                        "description": "Identifiers delimited by coma character ','",
-                        "required": true,
-                        "in": "formData"
-                    },
-                    {
-                        "name": "api_key",
-                        "in": "query",
-                        "required": false,
-                        "type": "string",
-                        "description": "Application owner API key."
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "403": {
-                        "description": "Not authorized"
-                    },
-                    "404": {
-                        "description": "One or more keys not found"
-                    },
-                    "default": {
-                        "description": "Unknown error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/keys/unblock": {
-            "post": {
-                "summary": "Unblocks keys",
-                "description": "Unblocks multiple keys.",
-                "tags": [
-                    "Keys"
-                ],
-                "consumes": [
-                    "form/www-data"
-                ],
-                "parameters": [
-                    {
-                        "name": "ids",
-                        "type": "string",
-                        "description": "Identifiers delimited by coma character ','",
-                        "required": true,
-                        "in": "formData"
-                    },
-                    {
-                        "name": "api_key",
-                        "in": "query",
-                        "required": false,
-                        "type": "string",
-                        "description": "Application owner API key."
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "403": {
-                        "description": "Not authorized"
-                    },
-                    "404": {
-                        "description": "One or more keys not found"
-                    },
-                    "default": {
-                        "description": "Unknown error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/keys_collections/{id}/mark_distributed": {
-            "post": {
-                "summary": "Marks collection as distributed",
-                "description": "Marks all keys from collection invividually as ditributed. Keys already marked as distributed wouldn't be changed.",
-                "tags": [
-                    "Keys"
-                ],
-                "parameters": [
-                    {
-                        "name": "id",
-                        "type": "integer",
-                        "description": "Collection id",
-                        "required": true,
-                        "in": "path"
-                    },
-                    {
-                        "name": "api_key",
-                        "type": "string",
-                        "description": "Application owner API key.",
-                        "required": false,
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "403": {
-                        "description": "Not authorized"
-                    },
-                    "404": {
-                        "description": "Collection not found"
-                    },
-                    "default": {
-                        "description": "Unknown error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/keys_collections/{id}/mark_not_distributed": {
-            "post": {
-                "summary": "Marks collection as distributed",
-                "description": "Marks all keys from collection invividually as ditributed. Keys already marked as distributed wouldn't be changed.",
-                "tags": [
-                    "Keys"
-                ],
-                "parameters": [
-                    {
-                        "name": "id",
-                        "type": "integer",
-                        "description": "Collection id",
-                        "required": true,
-                        "in": "path"
-                    },
-                    {
-                        "name": "api_key",
-                        "type": "string",
-                        "description": "Application owner API key.",
-                        "required": false,
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "403": {
-                        "description": "Not authorized"
-                    },
-                    "404": {
-                        "description": "Collection not found"
-                    },
-                    "default": {
-                        "description": "Unknown error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/keys_collections/{id}/block": {
-            "post": {
-                "summary": "Blocks collection",
-                "description": "Blocks all keys from collection invidually.",
-                "tags": [
-                    "Keys"
-                ],
-                "parameters": [
-                    {
-                        "name": "id",
-                        "type": "integer",
-                        "description": "Collection id",
-                        "required": true,
-                        "in": "path"
-                    },
-                    {
-                        "name": "api_key",
-                        "type": "string",
-                        "description": "Application owner API key.",
-                        "required": false,
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "403": {
-                        "description": "Not authorized"
-                    },
-                    "404": {
-                        "description": "Collection not found"
-                    },
-                    "default": {
-                        "description": "Unknown error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/keys_collections/{id}/unblock": {
-            "post": {
-                "summary": "Unblocks collection",
-                "description": "Unblocks all keys from collection individually.",
-                "tags": [
-                    "Keys"
-                ],
-                "parameters": [
-                    {
-                        "name": "id",
-                        "type": "integer",
-                        "description": "Collection id",
-                        "required": true,
-                        "in": "path"
-                    },
-                    {
-                        "name": "api_key",
-                        "type": "string",
-                        "description": "Application owner API key.",
-                        "required": false,
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "403": {
-                        "description": "Not authorized"
-                    },
-                    "404": {
-                        "description": "Collection not found"
-                    },
-                    "default": {
-                        "description": "Unknown error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/uploads": {
-            "post": {
-                "summary": "Creates a new upload",
-                "tags": [
-                    "Upload"
-                ],
-                "consumes": [
-                    "www/form-data"
-                ],
-                "parameters": [
-                    {
-                        "name": "total_size_bytes",
-                        "type": "integer",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "name": "api_key",
-                        "in": "query",
-                        "required": false,
-                        "type": "string",
-                        "description": "Application owner API key. Required when not using a session."
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/Upload"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    },
-                    "401": {
-                        "description": "Not authenticated"
-                    },
-                    "403": {
-                        "description": "Not authorized"
-                    }
-                }
-            }
-        },
-        "/uploads/{id}/chunk": {
-            "post": {
-                "summary": "Uploads a chunk",
-                "tags": [
-                    "Upload"
-                ],
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "parameters": [
-                    {
-                        "name": "id",
-                        "type": "integer",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "name": "chunk",
-                        "type": "file",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "name": "api_key",
-                        "in": "query",
-                        "required": true,
-                        "type": "string",
-                        "description": "Application owner API key. Required when not using a session."
-                    },
-                    {
-                        "name": "Content-Range",
-                        "in": "header",
-                        "required": true,
-                        "type": "string",
-                        "description": "RFC2616 Content-Range"
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/Upload"
-                        }
-                    },
-                    "401": {
-                        "description": "Not authenticated"
-                    },
-                    "403": {
-                        "description": "Not authorized"
-                    }
-                }
-            }
-        },
-        "/users/{user_id}/subscriptions/{subscription_id}/subscribe": {
-            "post": {
-                "summary": "Subscribes user to e-mail subscription.",
-                "description": "Need to be an adminsitrator to do that.",
-                "tags": [
-                    "User"
-                ],
-                "parameters": [
-                    {
-                        "name": "user_id",
-                        "type": "integer",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "name": "subscription_id",
-                        "type": "integer",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "default": {
-                        "description": "Error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{user_id}/subscriptions/{subscription_id}/unsubscribe": {
-            "post": {
-                "summary": "Unsubscribes user from e-mail subscription",
-                "description": "Neet to be an administrator",
-                "tags": [
-                    "User"
-                ],
-                "parameters": [
-                    {
-                        "name": "user_id",
-                        "type": "integer",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "name": "subscription_id",
-                        "type": "integer",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "default": {
-                        "description": "Error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/me/subscriptions/{subscription_id}/subscribe": {
-            "post": {
-                "summary": "Subscribes to e-mail subscription",
-                "description": "This call can be only executed in the web browser.",
-                "tags": [
-                    "User"
-                ],
-                "parameters": [
-                    {
-                        "name": "subscription_id",
-                        "type": "integer",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "default": {
-                        "description": "Error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/me/subscriptions/{subscription_id}/unsubscribe": {
-            "post": {
-                "summary": "Unsubscribes from e-mail subscription",
-                "description": "This call can be only executed in the web browser.",
-                "tags": [
-                    "User"
-                ],
-                "parameters": [
-                    {
-                        "name": "subscription_id",
-                        "type": "integer",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "default": {
-                        "description": "Error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/launchers/{platform}": {
-            "put": {
-                "summary": "Publishes a new launcher",
-                "tags": [
-                    "Launchers",
-                    "Admin"
-                ],
-                "consumes": [
-                    "www/form-data"
-                ],
-                "parameters": [
-                    {
-                        "name": "platform",
-                        "in": "path",
-                        "required": true,
-                        "type": "string",
-                        "description": "Platform",
-                        "enum": [
-                            "windows_x86",
-                            "windows_x86_64",
-                            "mac_x86",
-                            "mac_x86_64",
-                            "linux_x86",
-                            "linux_x86_64"
-                        ]
-                    },
-                    {
-                        "name": "file",
-                        "in": "formData",
-                        "required": true,
-                        "type": "file",
-                        "description": "Zip file with application content."
-                    },
-                    {
-                        "name": "api_key",
-                        "in": "query",
-                        "description": "Admin API key.",
-                        "type": "string",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "400": {
-                        "description": "Processing error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    },
-                    "401": {
-                        "description": "API key missing",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    },
-                    "403": {
-                        "description": "Not authorized.",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    },
-                    "default": {
-                        "description": "Error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
-                }
-            }
-        }
-    },
-    "definitions": {
-        "Error": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string",
-                    "description": "Human-readable error message"
-                },
-                "symbol": {
-                    "type": "string",
-                    "description": "Error symbol",
-                    "enum": [
-                        "INVALID_KEY_SECRET"
-                    ]
-                }
-            }
-        },
-        "Job": {
-            "type": "object",
-            "properties": {
-                "job_guid": {
-                    "type": "string",
-                    "description": "Job GUID to be used with Jobs API."
-                }
-            },
-            "example": {
-                "job_guid": "5776de94-56dc-4e8a-8992-1c1d9da1410c"
-            }
-        },
-        "App": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer",
-                    "format": "int32",
-                    "minimum": 1,
-                    "description": "Initial app id."
-                },
-                "name": {
-                    "type": "string",
-                    "description": "Application name"
-                },
-                "display_name": {
-                    "type": "string",
-                    "description": "Application display name."
-                },
-                "author": {
-                    "type": "string",
-                    "description": "Application author."
-                },
-                "patcher_secret": {
-                    "type": "string",
-                    "description": "The secret of patcher to use."
-                },
-                "use_keys": {
-                    "type": "boolean",
-                    "description": "If set to true, application needs to contact keys server to get valid key_secret for content download."
-                },
-                "publish_method": {
-                    "type": "string",
-                    "enum": [
-                        "all",
-                        "http_only"
-                    ]
-                }
-            }
-        },
-        "AppVersion": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer",
-                    "format": "int32",
-                    "minimum": 1,
-                    "description": "Initial version id."
-                },
-                "label": {
-                    "type": "string",
-                    "description": "Version label."
-                },
-                "changelog": {
-                    "type": "string",
-                    "description": "Description of changes."
-                },
-                "publish_date": {
-                    "type": "integer",
-                    "format": "int64",
-                    "description": "Unix timestamp of publish date."
-                },
-                "content_guid": {
-                    "type": "string",
-                    "description": "Guid of content file."
-                },
-                "content_meta_guid": {
-                    "type": "string",
-                    "description": "Guid of content meta file if available."
-                },
-                "diff_guid": {
-                    "type": "string",
-                    "description": "Guid of diff file or null if there's no diff."
-                },
-                "diff_meta_guid": {
-                    "type": "string",
-                    "description": "Guid of diff meta file if available."
-                },
-                "draft": {
-                    "type": "boolean",
-                    "description": "Set to true if this version is a draft version."
-                },
-                "main_executable": {
-                    "type": "string",
-                    "description": "Main executable relative path without slash at the beginning."
-                },
-                "main_executable_args": {
-                    "type": "array",
-                    "description": "Main executable arguments",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "ignored_files": {
-                    "type": "array",
-                    "description": "Relative list of paths that should be ignored for local data consistency.",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "AppVersionId": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer",
-                    "format": "int32",
-                    "minimum": 1,
-                    "description": "Version id."
-                }
-            },
-            "example": {
-                "id": 1
-            }
-        },
-        "AppContentSummary": {
-            "type": "object",
-            "properties": {
-                "size": {
-                    "type": "integer",
-                    "format": "int64",
-                    "description": "Content size."
-                },
-                "encryption_method": {
-                    "type": "string",
-                    "description": "Encryption method."
-                },
-                "compression_method": {
-                    "type": "string",
-                    "description": "Compression method."
-                },
-                "files": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/AppContentSummaryFile"
-                    },
-                    "description": "List of content files."
-                },
-                "hash_code": {
-                    "type": "string"
-                },
-                "chunks": {
-                    "$ref": "#/definitions/Chunks"
-                }
-            }
-        },
-        "AppContentSummaryFile": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "File path."
-                },
-                "hash": {
-                    "type": "string",
-                    "description": "File hash."
-                }
-            }
-        },
-        "AppDiffSummary": {
-            "type": "object",
-            "properties": {
-                "size": {
-                    "type": "integer",
-                    "format": "int64",
-                    "description": "Diff size."
-                },
-                "encryption_method": {
-                    "type": "string",
-                    "description": "Encryption method."
-                },
-                "compression_method": {
-                    "type": "string",
-                    "description": "Compression method."
-                },
-                "added_files": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "List of added files."
-                },
-                "modified_files": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "List of modified files."
-                },
-                "removed_files": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "List of removed files."
-                },
-                "hash_code": {
-                    "type": "string"
-                },
-                "chunks": {
-                    "$ref": "#/definitions/Chunks"
-                }
-            }
-        },
-        "Chunks": {
-            "type": "object",
-            "properties": {
-                "size": {
-                    "type": "integer"
-                },
-                "hashes": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "AppContentTorrentUrl": {
-            "type": "object",
-            "properties": {
-                "url": {
-                    "type": "string",
-                    "description": "Url to content torrent file."
-                }
-            }
-        },
-        "AppDiffTorrentUrl": {
-            "type": "object",
-            "properties": {
-                "url": {
-                    "type": "string",
-                    "description": "Url to diff torrent file."
-                }
-            }
-        },
-        "ContentUrl": {
-            "type": "object",
-            "properties": {
-                "url": {
-                    "type": "string",
-                    "description": "Url to content file."
-                },
-                "meta_url": {
-                    "type": "string",
-                    "description": "Url to meta file if available."
-                },
-                "region": {
-                    "type": "string",
-                    "description": "Region name of this mirror server."
-                },
-                "load": {
-                    "type": "number",
-                    "format": "double",
-                    "description": "Value of recent server load (usage). Servers with lower load should be prioritorized."
-                }
-            }
-        },
-        "Upload": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                }
-            }
-        }
+  "swagger": "2.0",
+  "info": {
+    "version": "0.6.1",
+    "title": "PatchKit API",
+    "contact": {
+      "name": "API Support",
+      "url": "http://patchkit.net/contact",
+      "email": "contact@patchkit.net"
     }
+  },
+  "externalDocs": {
+    "description": "Changelog",
+    "url": "https://stackedit.io/viewer#!url=http://api-docs.internal.patchkit.net:9090/db/web-CHANGELOG.md"
+  },
+  "host": "api.patchkit.net",
+  "basePath": "/1",
+  "paths": {
+    "/apps/{app_secret}": {
+      "get": {
+        "summary": "Get application info",
+        "description": "Gets detailes app info",
+        "tags": [
+          "App"
+        ],
+        "parameters": [
+          {
+            "name": "app_secret",
+            "in": "path",
+            "description": "Secret of an application.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/App"
+            }
+          },
+          "404": {
+            "description": "Application not found.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "default": {
+            "description": "Unknown error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/apps/{app_secret}/changelog": {
+      "get": {
+        "summary": "Gets app changelog",
+        "description": "Gets a complete changelog of an application.",
+        "parameters": [
+          {
+            "name": "app_secret",
+            "in": "path",
+            "description": "Secret of an application.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "App"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "version_id": {
+                    "type": "integer",
+                    "format": "int32",
+                    "description": "Version id.",
+                    "minimum": 1
+                  },
+                  "version_label": {
+                    "type": "string",
+                    "description": "Human readable label."
+                  },
+                  "changes": {
+                    "type": "string",
+                    "description": "Changes description."
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Application not found."
+          }
+        }
+      }
+    },
+    "/apps/{app_secret}/versions": {
+      "get": {
+        "summary": "Gets app version list",
+        "description": "Gets the basic information for all published versions. When API Key is provided, draft version information is included if draft version exists.",
+        "parameters": [
+          {
+            "name": "app_secret",
+            "in": "path",
+            "description": "Secret of an application.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "api_key",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Application owner API key."
+          }
+        ],
+        "tags": [
+          "App",
+          "Version"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/AppVersion"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Creates app version",
+        "description": "Creates a new version if there's no draft version yet.",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "app_secret",
+            "in": "path",
+            "description": "Secret of an application.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "api_key",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "description": "Application owner API key."
+          },
+          {
+            "name": "label",
+            "in": "formData",
+            "required": true,
+            "type": "string",
+            "description": "New version label."
+          },
+          {
+            "name": "changelog",
+            "in": "formData",
+            "required": false,
+            "type": "string",
+            "description": "Description of changes."
+          }
+        ],
+        "tags": [
+          "App",
+          "Version"
+        ],
+        "responses": {
+          "201": {
+            "description": "Version created successfully.",
+            "schema": {
+              "$ref": "#/definitions/AppVersion"
+            }
+          },
+          "403": {
+            "description": "API key invalid or draft version already exists."
+          },
+          "404": {
+            "description": "Application not found."
+          }
+        }
+      }
+    },
+    "/apps/{app_secret}/versions/latest": {
+      "get": {
+        "summary": "Gets app latest app version",
+        "description": "Gets latest application version object.",
+        "parameters": [
+          {
+            "name": "app_secret",
+            "in": "path",
+            "description": "Secret of an application.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/AppVersion"
+            }
+          }
+        }
+      }
+    },
+    "/apps/{app_secret}/versions/latest/id": {
+      "get": {
+        "summary": "Gets app latest app version id",
+        "description": "Gets latest application version id.",
+        "tags": [
+          "Version"
+        ],
+        "parameters": [
+          {
+            "name": "app_secret",
+            "in": "path",
+            "description": "Secret of an application.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/AppVersionId"
+            }
+          }
+        }
+      }
+    },
+    "/apps/{app_secret}/versions/{version_id}": {
+      "get": {
+        "summary": "Gets app version",
+        "description": "Gets selected version object. If API key is provided, can get the information about draft version.",
+        "tags": [
+          "Version"
+        ],
+        "parameters": [
+          {
+            "name": "app_secret",
+            "in": "path",
+            "description": "Secret of an application.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "version_id",
+            "in": "path",
+            "description": "Version id.",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "api_key",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Application owner API key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/AppVersion"
+            }
+          },
+          "403": {
+            "description": "Invalid API key."
+          },
+          "404": {
+            "description": "Version not found."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Updates app version",
+        "description": "Updates selected version properties. You can update any number of properties, because you're not required to pass all of them. Omited properties will remain unchanged.",
+        "tags": [
+          "Version"
+        ],
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "app_secret",
+            "in": "path",
+            "description": "Secret of an application.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "version_id",
+            "in": "path",
+            "description": "Version id.",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "api_key",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "description": "Application owner API key."
+          },
+          {
+            "name": "label",
+            "in": "formData",
+            "required": false,
+            "type": "string",
+            "description": "Version label."
+          },
+          {
+            "name": "changelog",
+            "in": "formData",
+            "required": false,
+            "type": "string",
+            "description": "Description of changes."
+          },
+          {
+            "name": "publish_when_processed",
+            "in": "formData",
+            "required": false,
+            "type": "boolean",
+            "description": "Change if version should be published when processing is done."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Version updated successfully.",
+            "schema": {
+              "$ref": "#/definitions/Job"
+            }
+          },
+          "403": {
+            "description": "Invalid API key."
+          },
+          "404": {
+            "description": "Version not found."
+          }
+        }
+      }
+    },
+    "/apps/{app_secret}/versions/{version_id}/content_summary": {
+      "get": {
+        "summary": "Gets app version content summary",
+        "description": "Gets selected version content summary.",
+        "parameters": [
+          {
+            "name": "app_secret",
+            "in": "path",
+            "description": "Secret of an application.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "version_id",
+            "in": "path",
+            "description": "Version id.",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/AppContentSummary"
+            }
+          },
+          "404": {
+            "description": "Version not found."
+          }
+        }
+      }
+    },
+    "/apps/{app_secret}/versions/{version_id}/diff_summary": {
+      "get": {
+        "summary": "Gets app version diff summary",
+        "description": "Gets selected version diff summary.",
+        "parameters": [
+          {
+            "name": "app_secret",
+            "in": "path",
+            "description": "Secret of an application.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "version_id",
+            "in": "path",
+            "description": "Version id.",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/AppDiffSummary"
+            }
+          },
+          "404": {
+            "description": "Version not found."
+          }
+        }
+      }
+    },
+    "/apps/{app_secret}/versions/{version_id}/content_torrent_url": {
+      "get": {
+        "summary": "Gets app version content torrent url",
+        "description": "Gets selected application version content torrent url.",
+        "parameters": [
+          {
+            "name": "app_secret",
+            "in": "path",
+            "description": "Secret of an application.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "version_id",
+            "in": "path",
+            "description": "Version id.",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "key_secret",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Key secret provided by key server. This value is optional and is needed only if application is secured by license keys."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/AppContentTorrentUrl"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Version not found."
+          }
+        }
+      }
+    },
+    "/apps/{app_secret}/versions/{version_id}/diff_torrent_url": {
+      "get": {
+        "summary": "Gets app version diff torrent url",
+        "description": "Gets selected application version diff torrent url.",
+        "parameters": [
+          {
+            "name": "app_secret",
+            "in": "path",
+            "description": "Secret of an application.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "version_id",
+            "in": "path",
+            "description": "Version id.",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "key_secret",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Key secret provided by key server. This value is optional and is needed only if application is secured by license keys."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/AppDiffTorrentUrl"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Version not found."
+          }
+        }
+      }
+    },
+    "/apps/{app_secret}/versions/{version_id}/content_urls": {
+      "get": {
+        "summary": "Gets app version content urls",
+        "description": "Gets selected application version content urls.",
+        "parameters": [
+          {
+            "name": "app_secret",
+            "in": "path",
+            "description": "Secret of an application.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "version_id",
+            "in": "path",
+            "description": "Version id.",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "description": "Country iso code",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/AppContentUrl"
+              }
+            }
+          },
+          "404": {
+            "description": "Version not found."
+          }
+        }
+      }
+    },
+    "/apps/{app_secret}/versions/{version_id}/diff_urls": {
+      "get": {
+        "summary": "Gets app version diff urls",
+        "description": "Gets selected application version diff urls.",
+        "parameters": [
+          {
+            "name": "app_secret",
+            "in": "path",
+            "description": "Secret of an application.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "version_id",
+            "in": "path",
+            "description": "Version id.",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "description": "Country iso code",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/AppDiffUrl"
+              }
+            }
+          },
+          "404": {
+            "description": "Version not found."
+          }
+        }
+      }
+    },
+    "/apps/{app_secret}/versions/{version_id}/content_file": {
+      "put": {
+        "summary": "Updates app version content file",
+        "description": "Updates the draft version with given content file. Version needs to be processed afterwards, so a job guid is returned. Should file or upload_id be passed.",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "app_secret",
+            "in": "path",
+            "description": "Secret of an application.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "version_id",
+            "in": "path",
+            "description": "Draft version id.",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "api_key",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "description": "Application owner API key."
+          },
+          {
+            "name": "file",
+            "in": "formData",
+            "required": false,
+            "type": "file",
+            "description": "Zip file with application content."
+          },
+          {
+            "name": "upload_id",
+            "in": "formData",
+            "required": false,
+            "type": "integer",
+            "description": "Id of upload entity."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File queued to be processed.",
+            "schema": {
+              "$ref": "#/definitions/Job"
+            }
+          },
+          "403": {
+            "description": "Invalid secret or version is not a draft version."
+          },
+          "404": {
+            "description": "Version not found"
+          }
+        },
+        "tags": [
+          "App",
+          "Version"
+        ]
+      }
+    },
+    "/apps/{app_secret}/versions/{version_id}/diff_file": {
+      "put": {
+        "summary": "Updates version diff file",
+        "description": "Updates the draft version with given diff file. Version needs to be processed afterwards, so a job guid is returned. Should file or upload_id be passed.",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "app_secret",
+            "in": "path",
+            "description": "Secret of an application.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "version_id",
+            "in": "path",
+            "description": "Draft version id.",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "api_key",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "description": "Application owner API key."
+          },
+          {
+            "name": "file",
+            "in": "formData",
+            "required": false,
+            "type": "file",
+            "description": "Zip file with application binary diffs."
+          },
+          {
+            "name": "upload_id",
+            "in": "formData",
+            "required": false,
+            "type": "integer",
+            "description": "Id of upload entity."
+          },
+          {
+            "name": "diff_summary",
+            "in": "formData",
+            "required": false,
+            "type": "string",
+            "description": "Required when diff_file is set. Using diff summary format."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File queued to be processed.",
+            "schema": {
+              "$ref": "#/definitions/Job"
+            }
+          },
+          "403": {
+            "description": "Invalid secret or version is not a draft version."
+          },
+          "404": {
+            "description": "version not found"
+          }
+        },
+        "tags": [
+          "App",
+          "Version"
+        ]
+      }
+    },
+    "/apps/{app_secret}/versions/{version_id}/publish": {
+      "put": {
+        "summary": "Publishes version",
+        "description": "Publishes selected version. Given version should be a draft version.",
+        "parameters": [
+          {
+            "name": "app_secret",
+            "in": "path",
+            "description": "Secret of an application.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "version_id",
+            "in": "path",
+            "description": "Draft version id.",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "api_key",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "description": "Application owner API key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Version published sucessfully."
+          }
+        },
+        "tags": [
+          "App",
+          "Version"
+        ]
+      }
+    },
+    "/apps/{app_secret}/logs": {
+      "post": {
+        "summary": "Uploads new log",
+        "description": "Uploads a new log from application.",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "tags": [
+          "App",
+          "Logs"
+        ],
+        "parameters": [
+          {
+            "name": "app_secret",
+            "type": "string",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "kind",
+            "description": "Log class. Used to determine origin and intent.",
+            "type": "integer",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "name": "version",
+            "description": "Version of the application that produced this log.",
+            "type": "string",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "name": "file_guid",
+            "type": "string",
+            "description": "Unique file GUID of this log. Using the same guid will replace the previous log file.",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "name": "content",
+            "type": "file",
+            "description": "Log content as a file.",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "name": "compression",
+            "type": "string",
+            "description": "Compression method used for the log file.",
+            "in": "formData",
+            "required": true,
+            "enum": [
+              "gzip"
+            ]
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "422": {
+            "description": "Invalid request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "default": {
+            "description": "Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/keys/mark_distributed": {
+      "post": {
+        "summary": "Marks keys as distributed",
+        "description": "Marks multiple keys as distributed.",
+        "tags": [
+          "Keys"
+        ],
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "parameters": [
+          {
+            "name": "ids",
+            "type": "string",
+            "description": "Identifiers delimited by coma character ','",
+            "required": true,
+            "in": "formData"
+          },
+          {
+            "name": "api_key",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Application owner API key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "One or more keys not found"
+          },
+          "default": {
+            "description": "Unknown error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/keys/mark_not_distributed": {
+      "post": {
+        "summary": "Marks keys as not distributed",
+        "description": "Marks multiple keys as not distributed.",
+        "tags": [
+          "Keys"
+        ],
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "parameters": [
+          {
+            "name": "ids",
+            "type": "string",
+            "description": "Identifiers delimited by coma character ','",
+            "required": true,
+            "in": "formData"
+          },
+          {
+            "name": "api_key",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Application owner API key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "One or more keys not found"
+          },
+          "default": {
+            "description": "Unknown error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/keys/block": {
+      "post": {
+        "summary": "Blocks keys",
+        "description": "Blocks multiple keys",
+        "tags": [
+          "Keys"
+        ],
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "parameters": [
+          {
+            "name": "ids",
+            "type": "string",
+            "description": "Identifiers delimited by coma character ','",
+            "required": true,
+            "in": "formData"
+          },
+          {
+            "name": "api_key",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Application owner API key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "One or more keys not found"
+          },
+          "default": {
+            "description": "Unknown error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/keys/unblock": {
+      "post": {
+        "summary": "Unblocks keys",
+        "description": "Unblocks multiple keys.",
+        "tags": [
+          "Keys"
+        ],
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "parameters": [
+          {
+            "name": "ids",
+            "type": "string",
+            "description": "Identifiers delimited by coma character ','",
+            "required": true,
+            "in": "formData"
+          },
+          {
+            "name": "api_key",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Application owner API key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "One or more keys not found"
+          },
+          "default": {
+            "description": "Unknown error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/keys_collections/{id}/mark_distributed": {
+      "post": {
+        "summary": "Marks collection as distributed",
+        "description": "Marks all keys from collection invividually as ditributed. Keys already marked as distributed wouldn't be changed.",
+        "tags": [
+          "Keys"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "type": "integer",
+            "description": "Collection id",
+            "required": true,
+            "in": "path"
+          },
+          {
+            "name": "api_key",
+            "type": "string",
+            "description": "Application owner API key.",
+            "required": false,
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "Collection not found"
+          },
+          "default": {
+            "description": "Unknown error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/keys_collections/{id}/mark_not_distributed": {
+      "post": {
+        "summary": "Marks collection as distributed",
+        "description": "Marks all keys from collection invividually as ditributed. Keys already marked as distributed wouldn't be changed.",
+        "tags": [
+          "Keys"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "type": "integer",
+            "description": "Collection id",
+            "required": true,
+            "in": "path"
+          },
+          {
+            "name": "api_key",
+            "type": "string",
+            "description": "Application owner API key.",
+            "required": false,
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "Collection not found"
+          },
+          "default": {
+            "description": "Unknown error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/keys_collections/{id}/block": {
+      "post": {
+        "summary": "Blocks collection",
+        "description": "Blocks all keys from collection invidually.",
+        "tags": [
+          "Keys"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "type": "integer",
+            "description": "Collection id",
+            "required": true,
+            "in": "path"
+          },
+          {
+            "name": "api_key",
+            "type": "string",
+            "description": "Application owner API key.",
+            "required": false,
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "Collection not found"
+          },
+          "default": {
+            "description": "Unknown error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/keys_collections/{id}/unblock": {
+      "post": {
+        "summary": "Unblocks collection",
+        "description": "Unblocks all keys from collection individually.",
+        "tags": [
+          "Keys"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "type": "integer",
+            "description": "Collection id",
+            "required": true,
+            "in": "path"
+          },
+          {
+            "name": "api_key",
+            "type": "string",
+            "description": "Application owner API key.",
+            "required": false,
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "Collection not found"
+          },
+          "default": {
+            "description": "Unknown error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/uploads": {
+      "post": {
+        "summary": "Creates a new upload",
+        "tags": [
+          "Upload"
+        ],
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "parameters": [
+          {
+            "name": "total_size_bytes",
+            "type": "integer",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "name": "api_key",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Application owner API key. Required when not using a session."
+          },
+          {
+            "name": "upload_token",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Version upload token. It can be used instead of api_key or sessions."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/Upload"
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "401": {
+            "description": "Not authenticated. If using upload_token, it can be invalid or expired."
+          },
+          "403": {
+            "description": "Not authorized"
+          }
+        }
+      }
+    },
+    "/uploads/{id}/chunk": {
+      "post": {
+        "summary": "Uploads a chunk",
+        "tags": [
+          "Upload"
+        ],
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "type": "integer",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "chunk",
+            "type": "file",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "name": "api_key",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "description": "Application owner API key. Required when not using a session."
+          },
+          {
+            "name": "upload_token",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Version upload token. It can be used instead of api_key or sessions."
+          },
+          {
+            "name": "Content-Range",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "RFC2616 Content-Range"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/Upload"
+            }
+          },
+          "401": {
+            "description": "Not authenticated"
+          },
+          "403": {
+            "description": "Not authorized"
+          }
+        }
+      }
+    },
+    "/users/{user_id}/subscriptions/{subscription_id}/subscribe": {
+      "post": {
+        "summary": "Subscribes user to e-mail subscription.",
+        "description": "Need to be an adminsitrator to do that.",
+        "tags": [
+          "User"
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "type": "integer",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "subscription_id",
+            "type": "integer",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/users/{user_id}/subscriptions/{subscription_id}/unsubscribe": {
+      "post": {
+        "summary": "Unsubscribes user from e-mail subscription",
+        "description": "Neet to be an administrator",
+        "tags": [
+          "User"
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "type": "integer",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "subscription_id",
+            "type": "integer",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/me/subscriptions/{subscription_id}/subscribe": {
+      "post": {
+        "summary": "Subscribes to e-mail subscription",
+        "description": "This call can be only executed in the web browser.",
+        "tags": [
+          "User"
+        ],
+        "parameters": [
+          {
+            "name": "subscription_id",
+            "type": "integer",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/me/subscriptions/{subscription_id}/unsubscribe": {
+      "post": {
+        "summary": "Unsubscribes from e-mail subscription",
+        "description": "This call can be only executed in the web browser.",
+        "tags": [
+          "User"
+        ],
+        "parameters": [
+          {
+            "name": "subscription_id",
+            "type": "integer",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/launchers/{platform}": {
+      "put": {
+        "summary": "Publishes a new launcher",
+        "tags": [
+          "Launchers",
+          "Admin"
+        ],
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "platform",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Platform",
+            "enum": [
+              "windows_x86",
+              "windows_x86_64",
+              "mac_x86",
+              "mac_x86_64",
+              "linux_x86",
+              "linux_x86_64"
+            ]
+          },
+          {
+            "name": "file",
+            "in": "formData",
+            "required": true,
+            "type": "file",
+            "description": "Zip file with application content."
+          },
+          {
+            "name": "api_key",
+            "in": "query",
+            "description": "Admin API key.",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Processing error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "401": {
+            "description": "API key missing",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "403": {
+            "description": "Not authorized.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "default": {
+            "description": "Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Error": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "description": "Human-readable error message"
+        },
+        "symbol": {
+          "type": "string",
+          "description": "Error symbol",
+          "enum": [
+            "INVALID_KEY_SECRET"
+          ]
+        }
+      }
+    },
+    "Job": {
+      "type": "object",
+      "properties": {
+        "job_guid": {
+          "type": "string",
+          "description": "Job GUID to be used with Jobs API."
+        }
+      },
+      "example": {
+        "job_guid": "5776de94-56dc-4e8a-8992-1c1d9da1410c"
+      }
+    },
+    "App": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 1,
+          "description": "Initial app id."
+        },
+        "name": {
+          "type": "string",
+          "description": "Application name"
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Application display name."
+        },
+        "author": {
+          "type": "string",
+          "description": "Application author."
+        },
+        "patcher_secret": {
+          "type": "string",
+          "description": "The secret of patcher to use."
+        },
+        "use_keys": {
+          "type": "boolean",
+          "description": "If set to true, application needs to contact keys server to get valid key_secret for content download."
+        },
+        "publish_method": {
+          "type": "string",
+          "enum": [
+            "all",
+            "http_only"
+          ]
+        }
+      }
+    },
+    "AppVersion": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 1,
+          "description": "Initial version id."
+        },
+        "label": {
+          "type": "string",
+          "description": "Version label."
+        },
+        "changelog": {
+          "type": "string",
+          "description": "Description of changes."
+        },
+        "publish_date": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Unix timestamp of publish date."
+        },
+        "content_guid": {
+          "type": "string",
+          "description": "Guid of content file."
+        },
+        "content_meta_guid": {
+          "type": "string",
+          "description": "Guid of content meta file if available."
+        },
+        "diff_guid": {
+          "type": "string",
+          "description": "Guid of diff file or null if there's no diff."
+        },
+        "diff_meta_guid": {
+          "type": "string",
+          "description": "Guid of diff meta file if available."
+        },
+        "draft": {
+          "type": "boolean",
+          "description": "Set to true if this version is a draft version."
+        },
+        "pending_publish": {
+          "type": "boolean"
+        },
+        "published": {
+          "type": "boolean"
+        },
+        "publish_progress": {
+          "type": "number",
+          "format": "float",
+          "description": "If pending_publish is true, this number will indicate the publishing progress."
+        },
+        "main_executable": {
+          "type": "string",
+          "description": "Main executable relative path without slash at the beginning."
+        },
+        "main_executable_args": {
+          "type": "array",
+          "description": "Main executable arguments",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ignored_files": {
+          "type": "array",
+          "description": "Relative list of paths that should be ignored for local data consistency.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "publish_when_processed": {
+          "type": "boolean",
+          "description": "Set to true if version will be published after successfull processing."
+        },
+        "processing_started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "processing_finished_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "AppVersionId": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 1,
+          "description": "Version id."
+        }
+      },
+      "example": {
+        "id": 1
+      }
+    },
+    "AppContentSummary": {
+      "type": "object",
+      "properties": {
+        "size": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Content size."
+        },
+        "encryption_method": {
+          "type": "string",
+          "description": "Encryption method."
+        },
+        "compression_method": {
+          "type": "string",
+          "description": "Compression method."
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AppContentSummaryFile"
+          },
+          "description": "List of content files."
+        },
+        "hash_code": {
+          "type": "string"
+        },
+        "chunks": {
+          "$ref": "#/definitions/Chunks"
+        }
+      }
+    },
+    "AppContentSummaryFile": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "File path."
+        },
+        "hash": {
+          "type": "string",
+          "description": "File hash."
+        }
+      }
+    },
+    "AppDiffSummary": {
+      "type": "object",
+      "properties": {
+        "size": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Diff size."
+        },
+        "encryption_method": {
+          "type": "string",
+          "description": "Encryption method."
+        },
+        "compression_method": {
+          "type": "string",
+          "description": "Compression method."
+        },
+        "added_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of added files."
+        },
+        "modified_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of modified files."
+        },
+        "removed_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of removed files."
+        },
+        "hash_code": {
+          "type": "string"
+        },
+        "chunks": {
+          "$ref": "#/definitions/Chunks"
+        }
+      }
+    },
+    "Chunks": {
+      "type": "object",
+      "properties": {
+        "size": {
+          "type": "integer"
+        },
+        "hashes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "AppContentTorrentUrl": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "Url to content torrent file."
+        }
+      }
+    },
+    "AppDiffTorrentUrl": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "Url to diff torrent file."
+        }
+      }
+    },
+    "AppContentUrl": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "Url to content file."
+        },
+        "meta_url": {
+          "type": "string",
+          "description": "Url to meta file if available."
+        },
+        "country": {
+          "type": "string",
+          "description": "ISO code of origin country."
+        }
+      }
+    },
+    "AppDiffUrl": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "Url to diff file."
+        },
+        "meta_url": {
+          "type": "string",
+          "description": "Url to meta file if available."
+        },
+        "country": {
+          "type": "string",
+          "description": "ISO code of origin country."
+        }
+      }
+    },
+    "Upload": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        }
+      }
+    }
+  }
 }

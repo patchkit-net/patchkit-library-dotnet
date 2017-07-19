@@ -162,14 +162,20 @@ namespace PatchKit.Api
         /// </summary>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="versionId">Version id.</param>
-        public ContentUrl[] GetAppVersionContentUrls(string appSecret, int versionId)
+        /// <param name="country">Country iso code</param>
+        public AppContentUrl[] GetAppVersionContentUrls(string appSecret, int versionId, string country = null)
         {
             string path = "/1/apps/{app_secret}/versions/{version_id}/content_urls";
+            List<string> queryList = new List<string>();
             path = path.Replace("{app_secret}", appSecret.ToString());
             path = path.Replace("{version_id}", versionId.ToString());
-            string query = string.Empty;
+            if (country != null)
+            {
+                queryList.Add("country="+country);
+            }
+            string query = string.Join("&", queryList.ToArray());
             var response = GetResponse(path, query);
-            return ParseResponse<ContentUrl[]>(response);
+            return ParseResponse<AppContentUrl[]>(response);
         }
         
         /// <summary>
@@ -177,15 +183,22 @@ namespace PatchKit.Api
         /// </summary>
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="versionId">Version id.</param>
-        public ContentUrl[] GetAppVersionDiffUrls(string appSecret, int versionId)
+        /// <param name="country">Country iso code</param>
+        public AppDiffUrl[] GetAppVersionDiffUrls(string appSecret, int versionId, string country = null)
         {
             string path = "/1/apps/{app_secret}/versions/{version_id}/diff_urls";
+            List<string> queryList = new List<string>();
             path = path.Replace("{app_secret}", appSecret.ToString());
             path = path.Replace("{version_id}", versionId.ToString());
-            string query = string.Empty;
+            if (country != null)
+            {
+                queryList.Add("country="+country);
+            }
+            string query = string.Join("&", queryList.ToArray());
             var response = GetResponse(path, query);
-            return ParseResponse<ContentUrl[]>(response);
+            return ParseResponse<AppDiffUrl[]>(response);
         }
+        
         
         
         
