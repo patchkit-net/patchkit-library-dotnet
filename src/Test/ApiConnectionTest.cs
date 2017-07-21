@@ -192,6 +192,100 @@ namespace PatchKit.Api
 
         }
 
+        [Test]
+        public void TestGetContentUrls()
+        {
+            var apiConnection = new MainApiConnection(_apiConnectionSettings);
+            
+            var factory = Substitute.For<IHttpWebRequestFactory>();
+            apiConnection.HttpWebRequestFactory = factory;
+            
+            var mainWebRequest = Substitute.For<IHttpWebRequest>();
+            factory.Create("http://main_server/1/apps/secret/versions/13/content_urls").Returns(mainWebRequest);
+            
+            var webResponse = CreateSimpleWebResponse(
+                "[{\"url\": \"http://first\", \"meta_url\": \"http://efg\", \"country\": \"PL\"}, " +
+                "{\"url\": \"http://second\", \"meta_url\": \"http://efg\"}]");
+            mainWebRequest.GetResponse().Returns(webResponse);
+
+            var contentUrls = apiConnection.GetAppVersionContentUrls("secret", 13);
+            Assert.AreEqual(2, contentUrls.Length);
+            Assert.AreEqual("http://first", contentUrls[0].Url);
+            Assert.AreEqual("PL", contentUrls[0].Country);
+            Assert.AreEqual(null, contentUrls[1].Country);
+        }
+        
+        [Test]
+        public void TestGetContentUrlsWithCountry()
+        {
+            var apiConnection = new MainApiConnection(_apiConnectionSettings);
+            
+            var factory = Substitute.For<IHttpWebRequestFactory>();
+            apiConnection.HttpWebRequestFactory = factory;
+            
+            var mainWebRequest = Substitute.For<IHttpWebRequest>();
+            factory.Create("http://main_server/1/apps/secret/versions/13/content_urls?country=PL").Returns(mainWebRequest);
+            
+            var webResponse = CreateSimpleWebResponse(
+                "[{\"url\": \"http://first\", \"meta_url\": \"http://efg\", \"country\": \"PL\"}, " +
+                "{\"url\": \"http://second\", \"meta_url\": \"http://efg\"}]");
+            mainWebRequest.GetResponse().Returns(webResponse);
+
+            var contentUrls = apiConnection.GetAppVersionContentUrls("secret", 13, "PL");
+            
+            Assert.AreEqual(2, contentUrls.Length);
+            Assert.AreEqual("http://first", contentUrls[0].Url);
+            Assert.AreEqual("PL", contentUrls[0].Country);
+            Assert.AreEqual(null, contentUrls[1].Country);
+        }
+        
+        [Test]
+        public void TestGetDiffUrls()
+        {
+            var apiConnection = new MainApiConnection(_apiConnectionSettings);
+            
+            var factory = Substitute.For<IHttpWebRequestFactory>();
+            apiConnection.HttpWebRequestFactory = factory;
+            
+            var mainWebRequest = Substitute.For<IHttpWebRequest>();
+            factory.Create("http://main_server/1/apps/secret/versions/13/diff_urls").Returns(mainWebRequest);
+            
+            var webResponse = CreateSimpleWebResponse(
+                "[{\"url\": \"http://first\", \"meta_url\": \"http://efg\", \"country\": \"PL\"}, " +
+                "{\"url\": \"http://second\", \"meta_url\": \"http://efg\"}]");
+            mainWebRequest.GetResponse().Returns(webResponse);
+
+            var contentUrls = apiConnection.GetAppVersionDiffUrls("secret", 13);
+            Assert.AreEqual(2, contentUrls.Length);
+            Assert.AreEqual("http://first", contentUrls[0].Url);
+            Assert.AreEqual("PL", contentUrls[0].Country);
+            Assert.AreEqual(null, contentUrls[1].Country);
+        }
+        
+        [Test]
+        public void TestGetDiffUrlsWithCountry()
+        {
+            var apiConnection = new MainApiConnection(_apiConnectionSettings);
+            
+            var factory = Substitute.For<IHttpWebRequestFactory>();
+            apiConnection.HttpWebRequestFactory = factory;
+            
+            var mainWebRequest = Substitute.For<IHttpWebRequest>();
+            factory.Create("http://main_server/1/apps/secret/versions/13/diff_urls?country=PL").Returns(mainWebRequest);
+            
+            var webResponse = CreateSimpleWebResponse(
+                "[{\"url\": \"http://first\", \"meta_url\": \"http://efg\", \"country\": \"PL\"}, " +
+                "{\"url\": \"http://second\", \"meta_url\": \"http://efg\"}]");
+            mainWebRequest.GetResponse().Returns(webResponse);
+
+            var contentUrls = apiConnection.GetAppVersionDiffUrls("secret", 13, "PL");
+            
+            Assert.AreEqual(2, contentUrls.Length);
+            Assert.AreEqual("http://first", contentUrls[0].Url);
+            Assert.AreEqual("PL", contentUrls[0].Country);
+            Assert.AreEqual(null, contentUrls[1].Country);
+        }
+
         private static IHttpWebResponse CreateErrorResponse(HttpStatusCode statusCode)
         {
             var mainResponse = Substitute.For<IHttpWebResponse>();
