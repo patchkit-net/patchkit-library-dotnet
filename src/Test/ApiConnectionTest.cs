@@ -16,9 +16,24 @@ namespace PatchKit.Api
         public void SetUp()
         {
             _apiConnectionSettings = new ApiConnectionSettings();
-            _apiConnectionSettings.MainServer = "main_server";
-            _apiConnectionSettings.CacheServers = new[] {"cache_server_1", "cache_server_2"};
-            _apiConnectionSettings.Timeout = 1;
+            _apiConnectionSettings.MainServer = new ApiConnectionServer()
+            {
+                Host = "main_server",
+                Timeout = 1
+            };
+            _apiConnectionSettings.CacheServers = new[]
+            {
+                new ApiConnectionServer()
+                {
+                    Host = "cache_server_1",
+                    Timeout = 1
+                },
+                new ApiConnectionServer()
+                {
+                    Host = "cache_server_2",
+                    Timeout = 1
+                }
+            };
         }
 
         [Test]
@@ -41,7 +56,7 @@ namespace PatchKit.Api
         [Test]
         public void TestHttps()
         {
-            _apiConnectionSettings.UseHttps = true;
+            _apiConnectionSettings.MainServer.UseHttps = true;
             var apiConnection = new ApiConnection(_apiConnectionSettings);
 
             var webRequest = Substitute.For<IHttpWebRequest>();
@@ -59,7 +74,7 @@ namespace PatchKit.Api
         [Test]
         public void TestCustomPort()
         {
-            _apiConnectionSettings.Port = 81;
+            _apiConnectionSettings.MainServer.Port = 81;
             var apiConnection = new ApiConnection(_apiConnectionSettings);
 
             var webRequest = Substitute.For<IHttpWebRequest>();

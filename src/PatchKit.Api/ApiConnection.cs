@@ -21,33 +21,49 @@ namespace PatchKit.Api
         /// </summary>
         /// <param name="connectionSettings">The connection settings.</param>
         /// <exception cref="System.ArgumentNullException">
-        /// connectionSettings - Url to main server is null.
+        /// connectionSettings - <see cref="ApiConnectionServer.Host"/> of one of the servers is null.
         /// or
-        /// connectionSettings - Url to main server is empty.
+        /// connectionSettings - <see cref="ApiConnectionServer.Host"/> of one of the servers is empty.
         /// </exception>
         /// <exception cref="System.ArgumentOutOfRangeException">
-        /// connectionSettings - Timeout value is less than zero and is not <see cref="System.Threading.Timeout.Infinite" />.
+        /// connectionSettings - <see cref="ApiConnectionServer.Timeout"/> of one of the servers is less than zero and is not <see cref="System.Threading.Timeout.Infinite" />.
         /// </exception>
         public ApiConnection(ApiConnectionSettings connectionSettings)
         {
-            if (connectionSettings.MainServer == null)
+            ThrowIfServerIsInvalid(connectionSettings.MainServer);
+            if (connectionSettings.CacheServers != null)
             {
-                throw new ArgumentNullException("connectionSettings", "Url to main server is null.");
-            }
-            if (string.IsNullOrEmpty(connectionSettings.MainServer))
-            {
-                throw new ArgumentNullException("connectionSettings", "Url to main server is empty.");
-            }
-            if (connectionSettings.Timeout < 0 && connectionSettings.Timeout != System.Threading.Timeout.Infinite)
-            {
-                throw new ArgumentOutOfRangeException("connectionSettings",
-                    "Timeout value is less than zero and is not System.Threading.Timeout.Infinite.");
+                foreach (var cacheServer in connectionSettings.CacheServers)
+                {
+                    ThrowIfServerIsInvalid(cacheServer);
+                }
             }
 
             _connectionSettings = connectionSettings;
             _jsonSerializerSettings = new JsonSerializerSettings();
             _jsonSerializerSettings.NullValueHandling = NullValueHandling.Ignore;
             _jsonSerializerSettings.MissingMemberHandling = MissingMemberHandling.Ignore;
+        }
+
+        // ReSharper disable once UnusedParameter.Local
+        private void ThrowIfServerIsInvalid(ApiConnectionServer server)
+        {
+            if (server.Host == null)
+            {
+                // ReSharper disable once NotResolvedInText
+                throw new ArgumentNullException("connectionSettings", "ApiConnectionServer.Host of one of the servers is null.");
+            }
+            if (string.IsNullOrEmpty(server.Host))
+            {
+                // ReSharper disable once NotResolvedInText
+                throw new ArgumentNullException("connectionSettings", "ApiConnectionServer.Host of one of the servers is empty");
+            }
+            if (server.Timeout < 0 && server.Timeout != System.Threading.Timeout.Infinite)
+            {
+                // ReSharper disable once NotResolvedInText
+                throw new ArgumentOutOfRangeException("connectionSettings",
+                    "ApiConnectionServer.Timeout of one of the servers is less than zero and is not System.Threading.Timeout.Infinite");
+            }
         }
 
         /// <summary>
@@ -64,31 +80,21 @@ namespace PatchKit.Api
             return httpWebRequest;
         }
 
-        private bool TryGetResponse(string host, string path, string query, int timeout, ServerType serverType,
+        private bool TryGetResponse(ApiConnectionServer server, string path, string query, int timeoutMultipler, ServerType serverType,
             out IApiResponse response)
         {
-            int port;
-            if (_connectionSettings.Port == 0)
-            {
-                port = _connectionSettings.UseHttps ? 443 : 80;
-            }
-            else
-            {
-                port = _connectionSettings.Port;
-            }
-            
             Uri uri = new UriBuilder
             {
-                Scheme = _connectionSettings.UseHttps ? "https" : "http",
-                Host = host,
+                Scheme = server.UseHttps ? "https" : "http",
+                Host = server.Host,
                 Path = path,
                 Query = query,
-                Port = port
+                Port = server.RealPort
             }.Uri;
 
             var httpRequest = CreateHttpRequest(uri);
 
-            httpRequest.Timeout = timeout;
+            httpRequest.Timeout = server.Timeout * timeoutMultipler;
 
             response = null;
 
@@ -161,21 +167,21 @@ namespace PatchKit.Api
             return value >= min && value <= max;
         }
 
-        private bool TryGetResponseFromCacheServer(string host, string path, string query, int timeout,
+        private bool TryGetResponseFromCacheServer(ApiConnectionServer server, string path, string query, int timeoutMultipler,
             out IApiResponse response)
         {
-            return TryGetResponse(host, path, query, timeout, ServerType.CacheServer, out response);
+            return TryGetResponse(server, path, query, timeoutMultipler, ServerType.CacheServer, out response);
         }
 
-        private bool TryGetResponseFromMainServer(string path, string query, int timeout, out IApiResponse response)
+        private bool TryGetResponseFromMainServer(string path, string query, int timeoutMultipler, out IApiResponse response)
         {
-            return TryGetResponse(_connectionSettings.MainServer, path, query, timeout, ServerType.MainServer,
+            return TryGetResponse(_connectionSettings.MainServer, path, query, timeoutMultipler, ServerType.MainServer,
                 out response);
         }
 
-        private bool TryGetResponse(string path, string query, int timeout, out IApiResponse apiResponse)
+        private bool TryGetResponse(string path, string query, int timeoutMultipler, out IApiResponse apiResponse)
         {
-            if (TryGetResponseFromMainServer(path, query, timeout, out apiResponse))
+            if (TryGetResponseFromMainServer(path, query, timeoutMultipler, out apiResponse))
             {
                 return true;
             }
@@ -184,7 +190,7 @@ namespace PatchKit.Api
             {
                 foreach (var cacheServer in _connectionSettings.CacheServers)
                 {
-                    if (TryGetResponseFromCacheServer(cacheServer, path, query, timeout, out apiResponse))
+                    if (TryGetResponseFromCacheServer(cacheServer, path, query, timeoutMultipler, out apiResponse))
                     {
                         return true;
                     }
@@ -203,16 +209,13 @@ namespace PatchKit.Api
         /// <exception cref="ApiConnectionException">Could not connect to API.</exception>
         public IApiResponse GetResponse(string path, string query)
         {
-            int timeout = _connectionSettings.Timeout;
-
             IApiResponse response;
 
-            if (!TryGetResponse(path, query, timeout, out response))
+            if (!TryGetResponse(path, query, 1, out response))
             {
                 // Double timeout and try again.
-                timeout *= 2;
 
-                if (!TryGetResponse(path, query, timeout, out response))
+                if (!TryGetResponse(path, query, 2, out response))
                 {
                     throw new ApiConnectionException("Unable to connect to API.");
                 }

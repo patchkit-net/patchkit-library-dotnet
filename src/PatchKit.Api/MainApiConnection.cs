@@ -12,14 +12,38 @@
         {
             return new ApiConnectionSettings
             {
-                MainServer = "api.patchkit.net",
+                MainServer = new ApiConnectionServer
+                {
+                    Host = "api.patchkit.net",
+                    Port = 80,
+                    UseHttps = false,
+                    Timeout = 5000
+                },
                 CacheServers =
                     new[]
                     {
-                        "api-cache-node-1.patchkit.net:43230", "api-cache-node-2.patchkit.net:43230",
-                        "api-cache-node-3.patchkit.net:43230"
-                    },
-                Timeout = 5000
+                        new ApiConnectionServer
+                        {
+                            Host = "api-cache-node-1.patchkit.net",
+                            Port = 43230,
+                            UseHttps = false,
+                            Timeout = 5000
+                        },
+                        new ApiConnectionServer
+                        {
+                            Host = "api-cache-node-2.patchkit.net",
+                            Port = 43230,
+                            UseHttps = false,
+                            Timeout = 5000
+                        },
+                        new ApiConnectionServer
+                        {
+                            Host = "api-cache-node-3.patchkit.net",
+                            Port = 43230,
+                            UseHttps = false,
+                            Timeout = 5000
+                        }
+                    }
             };
         }
 

@@ -12,9 +12,14 @@
         {
             return new ApiConnectionSettings
             {
-                MainServer = "keys.patchkit.net",
-                CacheServers = null,
-                Timeout = 5000
+                MainServer = new ApiConnectionServer
+                {
+                    Host = "keys.patchkit.net",
+                    Port = 43240,
+                    UseHttps = false,
+                    Timeout = 5000
+                },
+                CacheServers = null
             };
         }
 

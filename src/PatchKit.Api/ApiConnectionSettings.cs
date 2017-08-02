@@ -10,43 +10,13 @@ namespace PatchKit.Api
     public struct ApiConnectionSettings
     {
         /// <summary>
-        /// Url to main API server.
+        /// Main API server.
         /// </summary>
-        [NotNull] public string MainServer;
+        public ApiConnectionServer MainServer;
 
         /// <summary>
-        /// Urls for cache API servers. Priority of servers is based on the array order.
+        /// Cache API servers. Priority of servers is based on the array order.
         /// </summary>
-        [CanBeNull] public string[] CacheServers;
-
-        /// <summary>
-        /// Timeout for connection with one server.
-        /// </summary>
-        public int Timeout;
-
-        /// <summary>
-        /// Total timeout of request - <see cref="Timeout"/> multipled by amount of servers (including main server).
-        /// </summary>
-        public int TotalTimeout
-        {
-            get
-            {
-                if (CacheServers == null)
-                {
-                    return Timeout;
-                }
-                return Timeout*(1 + CacheServers.Length);
-            }
-        }
-
-        /// <summary>
-        /// Set to true to use https instead of http.
-        /// </summary>
-        public bool UseHttps;
-
-        /// <summary>
-        /// Port number to use. Defaults to 80 for http and 443 for https.
-        /// </summary>
-        public int Port;
+        [CanBeNull] public ApiConnectionServer[] CacheServers;
     }
 }
