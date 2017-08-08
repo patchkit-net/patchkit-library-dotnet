@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="ApiConnection.cs" />
     <Compile Include="ApiConnectionServer.cs" />
+    <Compile Include="ApiException.cs" />
     <Compile Include="IHttpWebRequest.cs" />
     <Compile Include="IHttpWebRequestFactory.cs" />
     <Compile Include="IHttpWebResponse.cs" />
