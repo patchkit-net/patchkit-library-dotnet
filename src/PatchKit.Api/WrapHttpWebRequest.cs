@@ -22,7 +22,23 @@ namespace PatchKit.Api
 
         public IHttpWebResponse GetResponse()
         {
-            return new WrapHttpWebResponse((HttpWebResponse) _httpWebRequest.GetResponse());
+            return new WrapHttpWebResponse(GetHttpResponse());
+        }
+
+        private HttpWebResponse GetHttpResponse()
+        {
+            try
+            {
+                return (HttpWebResponse) _httpWebRequest.GetResponse();
+            }
+            catch (WebException webException)
+            {
+                if (webException.Status == WebExceptionStatus.ProtocolError)
+                {
+                    return (HttpWebResponse) webException.Response;
+                }
+                throw;
+            }
         }
     }
 }
