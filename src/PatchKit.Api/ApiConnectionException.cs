@@ -28,17 +28,20 @@ namespace PatchKit.Api
         /// </summary>
         public IEnumerable<Exception> CacheServersExceptions { get { return CacheServersExceptionsList; } }
 
-        public override string ToString()
+        public override string Message
         {
-            var t = base.ToString();
+            get
+            {
+                var t = base.Message;
 
-            t += "\n" +
-                 "Main server exceptions:\n" +
-                 ExceptionsToString(MainServerExceptionsList) +
-                 "Cache servers exceptions:\n" +
-                 ExceptionsToString(CacheServersExceptionsList);
+                t += "\n" +
+                     "Main server exceptions:\n" +
+                     ExceptionsToString(MainServerExceptionsList) +
+                     "Cache servers exceptions:\n" +
+                     ExceptionsToString(CacheServersExceptionsList);
 
-            return t;
+                return t;
+            }
         }
 
         private string ExceptionsToString(List<Exception> exceptions)
