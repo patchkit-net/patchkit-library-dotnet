@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Security.Cryptography;
 using Newtonsoft.Json;
@@ -80,7 +81,7 @@ namespace PatchKit.Api
             return httpWebRequest;
         }
 
-        private bool TryGetResponse(ApiConnectionServer server, string path, string query, int timeoutMultipler, ServerType serverType,
+        private bool TryGetResponse(ApiConnectionServer server, string path, string query, int timeoutMultipler, List<Exception> exceptionsList, ServerType serverType,
             out IApiResponse response)
         {
             Uri uri = new UriBuilder
@@ -113,10 +114,13 @@ namespace PatchKit.Api
                                                      (int) httpResponse.StatusCode);
                 }
 
+                exceptionsList.Add(new ApiException("Server '" + server.Host + "' returned code " +
+                                                    (int) httpResponse.StatusCode));
                 return false;
             }
-            catch (WebException)
+            catch (WebException webException)
             {
+                exceptionsList.Add(webException);
                 return false;
             }
         }
@@ -163,21 +167,21 @@ namespace PatchKit.Api
             return value >= min && value <= max;
         }
 
-        private bool TryGetResponseFromCacheServer(ApiConnectionServer server, string path, string query, int timeoutMultipler,
+        private bool TryGetResponseFromCacheServer(ApiConnectionServer server, string path, string query, int timeoutMultipler, ApiConnectionException apiConnectionException,
             out IApiResponse response)
         {
-            return TryGetResponse(server, path, query, timeoutMultipler, ServerType.CacheServer, out response);
+            return TryGetResponse(server, path, query, timeoutMultipler, apiConnectionException.CacheServersExceptionsList, ServerType.CacheServer, out response);
         }
 
-        private bool TryGetResponseFromMainServer(string path, string query, int timeoutMultipler, out IApiResponse response)
+        private bool TryGetResponseFromMainServer(string path, string query, int timeoutMultipler, ApiConnectionException apiConnectionException, out IApiResponse response)
         {
-            return TryGetResponse(_connectionSettings.MainServer, path, query, timeoutMultipler, ServerType.MainServer,
+            return TryGetResponse(_connectionSettings.MainServer, path, query, timeoutMultipler, apiConnectionException.MainServerExceptionsList, ServerType.MainServer,
                 out response);
         }
 
-        private bool TryGetResponse(string path, string query, int timeoutMultipler, out IApiResponse apiResponse)
+        private bool TryGetResponse(string path, string query, int timeoutMultipler, ApiConnectionException apiConnectionException, out IApiResponse apiResponse)
         {
-            if (TryGetResponseFromMainServer(path, query, timeoutMultipler, out apiResponse))
+            if (TryGetResponseFromMainServer(path, query, timeoutMultipler, apiConnectionException, out apiResponse))
             {
                 return true;
             }
@@ -186,7 +190,7 @@ namespace PatchKit.Api
             {
                 foreach (var cacheServer in _connectionSettings.CacheServers)
                 {
-                    if (TryGetResponseFromCacheServer(cacheServer, path, query, timeoutMultipler, out apiResponse))
+                    if (TryGetResponseFromCacheServer(cacheServer, path, query, timeoutMultipler, apiConnectionException, out apiResponse))
                     {
                         return true;
                     }
@@ -207,13 +211,15 @@ namespace PatchKit.Api
         {
             IApiResponse response;
 
-            if (!TryGetResponse(path, query, 1, out response))
+            var apiConnectionException = new ApiConnectionException();
+            
+            if (!TryGetResponse(path, query, 1, apiConnectionException, out response))
             {
                 // Double timeout and try again.
 
-                if (!TryGetResponse(path, query, 2, out response))
+                if (!TryGetResponse(path, query, 2, apiConnectionException, out response))
                 {
-                    throw new ApiConnectionException("Unable to connect to API.");
+                    throw apiConnectionException;
                 }
             }
 
