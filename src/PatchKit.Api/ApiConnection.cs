@@ -115,13 +115,9 @@ namespace PatchKit.Api
 
                 return false;
             }
-            catch (WebException webException)
+            catch (WebException)
             {
-                if (webException.Status == WebExceptionStatus.Timeout)
-                {
-                    return false;
-                }
-                throw;
+                return false;
             }
         }
 
