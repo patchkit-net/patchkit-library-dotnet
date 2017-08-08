@@ -15,8 +15,8 @@
                 MainServer = new ApiConnectionServer
                 {
                     Host = "api.patchkit.net",
-                    Port = 80,
                     UseHttps = false,
+                    Port = 0,
                     Timeout = 5000
                 },
                 CacheServers =
@@ -24,21 +24,21 @@
                     {
                         new ApiConnectionServer
                         {
-                            Host = "api-cache-node-1.patchkit.net",
+                            Host = "api-cache-1.patchkit.net",
                             Port = 43230,
                             UseHttps = false,
                             Timeout = 5000
                         },
                         new ApiConnectionServer
                         {
-                            Host = "api-cache-node-2.patchkit.net",
+                            Host = "api-cache-2.patchkit.net",
                             Port = 43230,
                             UseHttps = false,
                             Timeout = 5000
                         },
                         new ApiConnectionServer
                         {
-                            Host = "api-cache-node-3.patchkit.net",
+                            Host = "api-cache-3.patchkit.net",
                             Port = 43230,
                             UseHttps = false,
                             Timeout = 5000
