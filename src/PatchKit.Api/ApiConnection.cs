@@ -110,8 +110,7 @@ namespace PatchKit.Api
 
                 if (IsResponseUnexpectedError(httpResponse, serverType))
                 {
-                    throw new ApiException("Server '" + httpRequest.Address.Host + "' returned code " +
-                                                     (int) httpResponse.StatusCode);
+                    throw new ApiResponseException((int) httpResponse.StatusCode);
                 }
 
                 exceptionsList.Add(new ApiException("Server '" + server.Host + "' returned code " +
