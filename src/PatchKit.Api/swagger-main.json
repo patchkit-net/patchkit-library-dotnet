@@ -1782,10 +1782,19 @@
     "AppDiffSummary": {
       "type": "object",
       "properties": {
+        "version": {
+          "type": "string",
+          "description": "Version string. Format: MAJOR.MINOR. Present in >= 2.4"
+        },
         "size": {
           "type": "integer",
           "format": "int64",
           "description": "Diff size."
+        },
+        "uncompressed_size": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Uncompressed archive size. Present in >= 2.4."
         },
         "encryption_method": {
           "type": "string",

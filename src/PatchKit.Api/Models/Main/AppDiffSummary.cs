@@ -5,10 +5,22 @@ namespace PatchKit.Api.Models.Main
     public struct AppDiffSummary
     {
         /// <summary>
+        /// Version string. Format: MAJOR.MINOR. Present in >= 2.4
+        /// </summary>
+        [JsonProperty("version")]
+        public string Version;
+        
+        /// <summary>
         /// Diff size.
         /// </summary>
         [JsonProperty("size")]
         public long Size;
+        
+        /// <summary>
+        /// Uncompressed archive size. Present in >= 2.4.
+        /// </summary>
+        [JsonProperty("uncompressed_size")]
+        public long UncompressedSize;
         
         /// <summary>
         /// Encryption method.
