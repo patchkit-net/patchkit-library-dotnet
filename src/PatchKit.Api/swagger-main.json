@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "0.6.1",
+    "version": "0.9.0",
     "title": "PatchKit API",
     "contact": {
       "name": "API Support",
@@ -555,7 +555,7 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/AppContentUrl"
+                "$ref": "#/definitions/ResourceUrl"
               }
             }
           },
@@ -599,7 +599,7 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/AppDiffUrl"
+                "$ref": "#/definitions/ResourceUrl"
               }
             }
           },
@@ -1285,6 +1285,13 @@
             "required": true
           },
           {
+            "name": "md5",
+            "type": "string",
+            "in": "formData",
+            "required": false,
+            "description": "Optional MD5 sum of given chunk. If given, server will perform chunk validation before accepting it. In case of invalid MD5 sum, a precognition failed (412) http code is returned."
+          },
+          {
             "name": "api_key",
             "in": "query",
             "required": true,
@@ -1318,6 +1325,9 @@
           },
           "403": {
             "description": "Not authorized"
+          },
+          "412": {
+            "description": "Validation of chunk has failed. Try sending it again."
           }
         }
       }
@@ -1517,6 +1527,24 @@
           }
         }
       }
+    },
+    "/system/patchers": {
+      "get": {
+        "summary": "Gets default system patchers.",
+        "description": "Gets the list of default system patchers. If there's no default patcher set for specified platform, secret will be null.",
+        "tags": [
+          "Other",
+          "Public"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/SystemPatchers"
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -1688,10 +1716,19 @@
     "AppContentSummary": {
       "type": "object",
       "properties": {
+        "version": {
+          "type": "string",
+          "description": "Version string. Format: MAJOR.MINOR. Present in >= 2.4"
+        },
         "size": {
           "type": "integer",
           "format": "int64",
           "description": "Content size."
+        },
+        "uncompressed_size": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Uncompressed archive size. Present in >= 2.4."
         },
         "encryption_method": {
           "type": "string",
@@ -1726,6 +1763,19 @@
         "hash": {
           "type": "string",
           "description": "File hash."
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Uncompressed file size in bytes. Present in >= 2.3"
+        },
+        "flags": {
+          "type": "string",
+          "description": "File flags, present in >= 2.3",
+          "enum": [
+            "executable",
+            "ignore"
+          ]
         }
       }
     },
@@ -1806,24 +1856,7 @@
         }
       }
     },
-    "AppContentUrl": {
-      "type": "object",
-      "properties": {
-        "url": {
-          "type": "string",
-          "description": "Url to content file."
-        },
-        "meta_url": {
-          "type": "string",
-          "description": "Url to meta file if available."
-        },
-        "country": {
-          "type": "string",
-          "description": "ISO code of origin country."
-        }
-      }
-    },
-    "AppDiffUrl": {
+    "ResourceUrl": {
       "type": "object",
       "properties": {
         "url": {
@@ -1837,6 +1870,11 @@
         "country": {
           "type": "string",
           "description": "ISO code of origin country."
+        },
+        "part_size": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Size of single file part. If set to 0 then file is distributed within a single part (default). Part URLs can be evaluated from first part URL - second and following parts have '.INDEX' names. For instance ../c49fde98-a07c-11e7-8919-33f7211dd1c0 is first part, then ../c49fde98-a07c-11e7-8919-33f7211dd1c0.1 is second and ../c49fde98-a07c-11e7-8919-33f7211dd1c0.2 is third."
         }
       }
     },
@@ -1845,6 +1883,28 @@
       "properties": {
         "id": {
           "type": "integer"
+        }
+      }
+    },
+    "SystemPatchers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "platform": {
+            "type": "string",
+            "enum": [
+              "windows_x86",
+              "windows_x86_64",
+              "mac_x86",
+              "mac_x86_64",
+              "linux_x86",
+              "linux_x86_64"
+            ]
+          },
+          "secret": {
+            "type": "string"
+          }
         }
       }
     }
