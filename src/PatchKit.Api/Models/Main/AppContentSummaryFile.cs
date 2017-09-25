@@ -16,5 +16,17 @@ namespace PatchKit.Api.Models.Main
         [JsonProperty("hash")]
         public string Hash;
         
+        /// <summary>
+        /// Uncompressed file size in bytes. Present in >= 2.3
+        /// </summary>
+        [JsonProperty("size")]
+        public long Size;
+        
+        /// <summary>
+        /// File flags, present in >= 2.3
+        /// </summary>
+        [JsonProperty("flags")]
+        public string Flags;
+        
     }
 }

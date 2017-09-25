@@ -163,7 +163,7 @@ namespace PatchKit.Api
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="versionId">Version id.</param>
         /// <param name="country">Country iso code</param>
-        public AppContentUrl[] GetAppVersionContentUrls(string appSecret, int versionId, string country = null)
+        public ResourceUrl[] GetAppVersionContentUrls(string appSecret, int versionId, string country = null)
         {
             string path = "/1/apps/{app_secret}/versions/{version_id}/content_urls";
             List<string> queryList = new List<string>();
@@ -175,7 +175,7 @@ namespace PatchKit.Api
             }
             string query = string.Join("&", queryList.ToArray());
             var response = GetResponse(path, query);
-            return ParseResponse<AppContentUrl[]>(response);
+            return ParseResponse<ResourceUrl[]>(response);
         }
         
         /// <summary>
@@ -184,7 +184,7 @@ namespace PatchKit.Api
         /// <param name="appSecret">Secret of an application.</param>
         /// <param name="versionId">Version id.</param>
         /// <param name="country">Country iso code</param>
-        public AppDiffUrl[] GetAppVersionDiffUrls(string appSecret, int versionId, string country = null)
+        public ResourceUrl[] GetAppVersionDiffUrls(string appSecret, int versionId, string country = null)
         {
             string path = "/1/apps/{app_secret}/versions/{version_id}/diff_urls";
             List<string> queryList = new List<string>();
@@ -196,8 +196,9 @@ namespace PatchKit.Api
             }
             string query = string.Join("&", queryList.ToArray());
             var response = GetResponse(path, query);
-            return ParseResponse<AppDiffUrl[]>(response);
+            return ParseResponse<ResourceUrl[]>(response);
         }
+        
         
         
         
