@@ -11,9 +11,9 @@ namespace PatchKit.Api
         /// <summary>
         /// API status code.
         /// </summary>
-        public int StatusCode { get; private set; }
+        public int StatusCode { get; }
 
-        internal ApiResponseException(int statusCode) : base(string.Format("Invalid API response - {0}", statusCode))
+        internal ApiResponseException(int statusCode) : base($"API server returned status code {statusCode}")
         {
             StatusCode = statusCode;
         }

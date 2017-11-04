@@ -165,8 +165,8 @@ namespace PatchKit.Api
             mainWebRequest.Address.Returns(new Uri("http://main_server"));
 
             Assert.Throws(
-                Is.TypeOf<ApiException>()
-                    .And.Message.EqualTo("Server 'main_server' returned code 404"),
+                Is.TypeOf<ApiResponseException>()
+                    .And.Message.EqualTo("API server returned status code 404"),
                 () => apiConnection.GetResponse("/path", "query")
             );
         }
