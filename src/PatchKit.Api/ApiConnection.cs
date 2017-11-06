@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
-using System.Security.Cryptography;
 using Newtonsoft.Json;
+using PatchKit.Logging;
 
 namespace PatchKit.Api
 {
@@ -17,6 +18,8 @@ namespace PatchKit.Api
 
         public IHttpWebRequestFactory HttpWebRequestFactory = new WrapHttpWebRequestFactory();
 
+        public ILogger Logger = DummyLogger.Instance;
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="ApiConnection"/> class.
         /// </summary>
@@ -41,9 +44,11 @@ namespace PatchKit.Api
             }
 
             _connectionSettings = connectionSettings;
-            _jsonSerializerSettings = new JsonSerializerSettings();
-            _jsonSerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-            _jsonSerializerSettings.MissingMemberHandling = MissingMemberHandling.Ignore;
+            _jsonSerializerSettings = new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore,
+                MissingMemberHandling = MissingMemberHandling.Ignore
+            };
         }
 
         // ReSharper disable once UnusedParameter.Local
@@ -84,41 +89,54 @@ namespace PatchKit.Api
         private bool TryGetResponse(ApiConnectionServer server, string path, string query, int timeoutMultipler, List<Exception> exceptionsList, ServerType serverType,
             out IApiResponse response)
         {
-            Uri uri = new UriBuilder
-            {
-                Scheme = server.UseHttps ? "https" : "http",
-                Host = server.Host,
-                Path = path,
-                Query = query,
-                Port = server.RealPort
-            }.Uri;
-
-            var httpRequest = CreateHttpRequest(uri);
-
-            httpRequest.Timeout = server.Timeout * timeoutMultipler;
-
+            Logger.LogDebug($"Trying to get response from server ({serverType}): '{server.Host}:{server.RealPort}' (uses HTTPS: {server.UseHttps})...");
+            
             response = null;
-
+            
             try
             {
+                var uri = new UriBuilder
+                {
+                    Scheme = server.UseHttps ? "https" : "http",
+                    Host = server.Host,
+                    Path = path,
+                    Query = query,
+                    Port = server.RealPort
+                }.Uri;
+
+                var httpRequest = CreateHttpRequest(uri);
+
+                httpRequest.Timeout = server.Timeout * timeoutMultipler;
+                Logger.LogTrace($"Setting request timeout to {httpRequest.Timeout}ms");
+                
                 var httpResponse = httpRequest.GetResponse();
+
+                Logger.LogDebug("Received response. Checking whether it is valid...");
+                Logger.LogTrace($"Response status code: {httpResponse.StatusCode}");
+                
                 if (IsResponseValid(httpResponse, serverType))
                 {
+                    Logger.LogDebug("Response is valid.");
                     response = new ApiResponse(httpResponse);
                     return true;
                 }
 
+                Logger.LogWarning("Response is not valid. Checking whether it is API error...");
+                
                 if (IsResponseUnexpectedError(httpResponse, serverType))
                 {
+                    Logger.LogError("API error. Unable to get valid response.");
                     throw new ApiResponseException((int) httpResponse.StatusCode);
                 }
 
+                Logger.LogDebug("Error is not related to API. Registering it in exception list. Probably it was caused by connection problems.");
                 exceptionsList.Add(new ApiException("Server '" + server.Host + "' returned code " +
                                                     (int) httpResponse.StatusCode));
                 return false;
             }
             catch (WebException webException)
             {
+                Logger.LogWarning("Unable to get response from server.", webException);
                 exceptionsList.Add(webException);
                 return false;
             }
@@ -129,11 +147,11 @@ namespace PatchKit.Api
             switch (serverType)
             {
                 case ServerType.MainServer:
-                    return IsStatusCodeOK(httpResponse.StatusCode);
+                    return IsStatusCodeOk(httpResponse.StatusCode);
                 case ServerType.CacheServer:
                     return httpResponse.StatusCode == HttpStatusCode.OK;
                 default:
-                    throw new ArgumentOutOfRangeException("serverType", serverType, null);
+                    throw new ArgumentOutOfRangeException(nameof(serverType), serverType, null);
             }
         }
 
@@ -142,16 +160,16 @@ namespace PatchKit.Api
             switch (serverType)
             {
                 case ServerType.MainServer:
-                    return !IsStatusCodeOK(httpResponse.StatusCode) &&
+                    return !IsStatusCodeOk(httpResponse.StatusCode) &&
                            !IsStatusCodeServerError(httpResponse.StatusCode);
                 case ServerType.CacheServer:
                     return false; // ignore any api cache error
                 default:
-                    throw new ArgumentOutOfRangeException("serverType", serverType, null);
+                    throw new ArgumentOutOfRangeException(nameof(serverType), serverType, null);
             }
         }
 
-        private bool IsStatusCodeOK(HttpStatusCode statusCode)
+        private bool IsStatusCodeOk(HttpStatusCode statusCode)
         {
             return IsWithin((int) statusCode, 200, 299);
         }
@@ -208,6 +226,8 @@ namespace PatchKit.Api
         /// <exception cref="ApiConnectionException">Could not connect to API.</exception>
         public IApiResponse GetResponse(string path, string query)
         {
+            Logger.LogDebug($"Getting response for path: '{path}' and query: '{query}'...");
+            
             IApiResponse response;
 
             var apiConnectionException = new ApiConnectionException();
@@ -216,12 +236,20 @@ namespace PatchKit.Api
             {
                 // Double timeout and try again.
 
+                Logger.LogWarning(
+                    "Failed to get response with regular timeout. Trying again with double timeout...");
+                
                 if (!TryGetResponse(path, query, 2, apiConnectionException, out response))
                 {
+                    Logger.LogError("Failed to get response with double timeout.");
+                    
                     throw apiConnectionException;
                 }
             }
 
+            Logger.LogDebug("Successfully got response.");
+            Logger.LogTrace($"Response body: {response.Body}");
+            
             return response;
         }
 
