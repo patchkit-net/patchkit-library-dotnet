@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
 
 namespace PatchKit.Api
@@ -70,7 +72,7 @@ namespace PatchKit.Api
             var apiResponse = apiConnection.GetResponse("/path", "query");
             Assert.AreEqual("test", apiResponse.Body);
         }
-        
+
         [Test]
         public void TestCustomPort()
         {
@@ -150,7 +152,7 @@ namespace PatchKit.Api
         [Test]
         public void Test4XXException()
         {
-            // any 4XX error from the main server should throw an exception
+            // any 4XX error from the main server should throw an ApiResponseException
             var apiConnection = new ApiConnection(_apiConnectionSettings);
 
             var factory = Substitute.For<IHttpWebRequestFactory>();
@@ -165,10 +167,114 @@ namespace PatchKit.Api
             mainWebRequest.Address.Returns(new Uri("http://main_server"));
 
             Assert.Throws(
-                Is.TypeOf<ApiResponseException>()
-                    .And.Message.EqualTo("API server returned status code 404"),
+                Is.TypeOf<ApiResponseException>(),
                 () => apiConnection.GetResponse("/path", "query")
             );
+        }
+
+        [Test]
+        public void Test5XXException()
+        {
+            // any 5XX error from the main server should throw an ApiConnectionException
+            var apiConnection = new ApiConnection(_apiConnectionSettings);
+
+            var factory = Substitute.For<IHttpWebRequestFactory>();
+            apiConnection.HttpWebRequestFactory = factory;
+
+            var mainWebRequest = Substitute.For<IHttpWebRequest>();
+            factory.Create("http://main_server/path?query").Returns(mainWebRequest);
+
+            var mainResponse = Substitute.For<IHttpWebResponse>();
+            mainResponse.StatusCode.Returns(HttpStatusCode.InternalServerError);
+            mainWebRequest.GetResponse().Returns(mainResponse);
+            mainWebRequest.Address.Returns(new Uri("http://main_server"));
+
+            var exception = (ApiConnectionException) Assert.Throws(
+                Is.TypeOf<ApiConnectionException>(),
+                () => apiConnection.GetResponse("/path", "query")
+            );
+            Assert.IsTrue(exception.MainServerExceptions.Any());
+            Assert.IsTrue(exception.CacheServersExceptions.Any());
+        }
+        
+        [Test]
+        public void TestCache4XXException()
+        {
+            var apiConnection = new ApiConnection(_apiConnectionSettings);
+
+            var factory = Substitute.For<IHttpWebRequestFactory>();
+            apiConnection.HttpWebRequestFactory = factory;
+
+            var mainWebRequest = Substitute.For<IHttpWebRequest>();
+            var cache1WebRequest = Substitute.For<IHttpWebRequest>();
+            var cache2WebRequest = Substitute.For<IHttpWebRequest>();
+            factory.Create("http://main_server/path?query").Returns(mainWebRequest);
+            factory.Create("http://cache_server_1/path?query").Returns(cache1WebRequest);
+            factory.Create("http://cache_server_2/path?query").Returns(cache2WebRequest);
+
+            mainWebRequest.GetResponse().Throws(info =>
+            {
+                throw new WebException("main-server");
+            });
+            mainWebRequest.Address.Returns(new Uri("http://main_server"));
+            
+            cache1WebRequest.GetResponse().Throws(info =>
+            {
+                throw new WebException("cache-server-1");
+            });
+            cache1WebRequest.Address.Returns(new Uri("http://cache_server_1"));
+
+            var cache2WebResponse = CreateErrorResponse(HttpStatusCode.NotFound);
+            cache2WebRequest.GetResponse().Returns(cache2WebResponse);
+            cache2WebRequest.Address.Returns(new Uri("http://cache-server-2"));
+
+            var exception = (ApiConnectionException) Assert.Throws(
+                Is.TypeOf<ApiConnectionException>(),
+                () => apiConnection.GetResponse("/path", "query")
+            );
+            Assert.IsTrue(exception.MainServerExceptions.All(e => e.Message == "main-server"));
+            Assert.IsTrue(exception.CacheServersExceptions.Any(e => e.Message == "cache-server-1"));
+        }
+        
+        [Test]
+        public void TestExceptions()
+        {
+            var apiConnection = new ApiConnection(_apiConnectionSettings);
+
+            var factory = Substitute.For<IHttpWebRequestFactory>();
+            apiConnection.HttpWebRequestFactory = factory;
+
+            var mainWebRequest = Substitute.For<IHttpWebRequest>();
+            var cache1WebRequest = Substitute.For<IHttpWebRequest>();
+            var cache2WebRequest = Substitute.For<IHttpWebRequest>();
+            factory.Create("http://main_server/path?query").Returns(mainWebRequest);
+            factory.Create("http://cache_server_1/path?query").Returns(cache1WebRequest);
+            factory.Create("http://cache_server_2/path?query").Returns(cache2WebRequest);
+
+            mainWebRequest.GetResponse().Throws(info =>
+            {
+                throw new WebException("main-server");
+            });
+            mainWebRequest.Address.Returns(new Uri("http://main_server"));
+            
+            cache1WebRequest.GetResponse().Throws(info =>
+            {
+                throw new WebException("cache-server-1");
+            });
+            cache1WebRequest.Address.Returns(new Uri("http://cache_server_1"));
+            
+            cache2WebRequest.GetResponse().Throws(info =>
+            {
+                throw new WebException("cache-server-2");
+            });
+            cache2WebRequest.Address.Returns(new Uri("http://cache-server-2"));
+
+            var exception = (ApiConnectionException) Assert.Throws(
+                Is.TypeOf<ApiConnectionException>(),
+                () => apiConnection.GetResponse("/path", "query")
+            );
+            Assert.IsTrue(exception.MainServerExceptions.All(e => e.Message == "main-server"));
+            Assert.IsTrue(exception.CacheServersExceptions.All(e => e.Message == "cache-server-1" || e.Message == "cache-server-2"));
         }
 
         [Test]
@@ -204,20 +310,19 @@ namespace PatchKit.Api
 
             var apiResponse = apiConnection.GetResponse("/path", "query");
             Assert.AreEqual("test", apiResponse.Body);
-
         }
 
         [Test]
         public void TestGetContentUrls()
         {
             var apiConnection = new MainApiConnection(_apiConnectionSettings);
-            
+
             var factory = Substitute.For<IHttpWebRequestFactory>();
             apiConnection.HttpWebRequestFactory = factory;
-            
+
             var mainWebRequest = Substitute.For<IHttpWebRequest>();
             factory.Create("http://main_server/1/apps/secret/versions/13/content_urls").Returns(mainWebRequest);
-            
+
             var webResponse = CreateSimpleWebResponse(
                 "[{\"url\": \"http://first\", \"meta_url\": \"http://efg\", \"country\": \"PL\"}, " +
                 "{\"url\": \"http://second\", \"meta_url\": \"http://efg\"}]");
@@ -229,42 +334,43 @@ namespace PatchKit.Api
             Assert.AreEqual("PL", contentUrls[0].Country);
             Assert.AreEqual(null, contentUrls[1].Country);
         }
-        
+
         [Test]
         public void TestGetContentUrlsWithCountry()
         {
             var apiConnection = new MainApiConnection(_apiConnectionSettings);
-            
+
             var factory = Substitute.For<IHttpWebRequestFactory>();
             apiConnection.HttpWebRequestFactory = factory;
-            
+
             var mainWebRequest = Substitute.For<IHttpWebRequest>();
-            factory.Create("http://main_server/1/apps/secret/versions/13/content_urls?country=PL").Returns(mainWebRequest);
-            
+            factory.Create("http://main_server/1/apps/secret/versions/13/content_urls?country=PL")
+                .Returns(mainWebRequest);
+
             var webResponse = CreateSimpleWebResponse(
                 "[{\"url\": \"http://first\", \"meta_url\": \"http://efg\", \"country\": \"PL\"}, " +
                 "{\"url\": \"http://second\", \"meta_url\": \"http://efg\"}]");
             mainWebRequest.GetResponse().Returns(webResponse);
 
             var contentUrls = apiConnection.GetAppVersionContentUrls("secret", 13, "PL");
-            
+
             Assert.AreEqual(2, contentUrls.Length);
             Assert.AreEqual("http://first", contentUrls[0].Url);
             Assert.AreEqual("PL", contentUrls[0].Country);
             Assert.AreEqual(null, contentUrls[1].Country);
         }
-        
+
         [Test]
         public void TestGetDiffUrls()
         {
             var apiConnection = new MainApiConnection(_apiConnectionSettings);
-            
+
             var factory = Substitute.For<IHttpWebRequestFactory>();
             apiConnection.HttpWebRequestFactory = factory;
-            
+
             var mainWebRequest = Substitute.For<IHttpWebRequest>();
             factory.Create("http://main_server/1/apps/secret/versions/13/diff_urls").Returns(mainWebRequest);
-            
+
             var webResponse = CreateSimpleWebResponse(
                 "[{\"url\": \"http://first\", \"meta_url\": \"http://efg\", \"country\": \"PL\"}, " +
                 "{\"url\": \"http://second\", \"meta_url\": \"http://efg\"}]");
@@ -276,25 +382,25 @@ namespace PatchKit.Api
             Assert.AreEqual("PL", contentUrls[0].Country);
             Assert.AreEqual(null, contentUrls[1].Country);
         }
-        
+
         [Test]
         public void TestGetDiffUrlsWithCountry()
         {
             var apiConnection = new MainApiConnection(_apiConnectionSettings);
-            
+
             var factory = Substitute.For<IHttpWebRequestFactory>();
             apiConnection.HttpWebRequestFactory = factory;
-            
+
             var mainWebRequest = Substitute.For<IHttpWebRequest>();
             factory.Create("http://main_server/1/apps/secret/versions/13/diff_urls?country=PL").Returns(mainWebRequest);
-            
+
             var webResponse = CreateSimpleWebResponse(
                 "[{\"url\": \"http://first\", \"meta_url\": \"http://efg\", \"country\": \"PL\"}, " +
                 "{\"url\": \"http://second\", \"meta_url\": \"http://efg\"}]");
             mainWebRequest.GetResponse().Returns(webResponse);
 
             var contentUrls = apiConnection.GetAppVersionDiffUrls("secret", 13, "PL");
-            
+
             Assert.AreEqual(2, contentUrls.Length);
             Assert.AreEqual("http://first", contentUrls[0].Url);
             Assert.AreEqual("PL", contentUrls[0].Country);
