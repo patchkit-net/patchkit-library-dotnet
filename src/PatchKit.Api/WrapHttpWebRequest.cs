@@ -33,7 +33,7 @@ namespace PatchKit.Api
             }
             catch (WebException webException)
             {
-                if (webException.Status == WebExceptionStatus.ProtocolError)
+                if (webException.Status == WebExceptionStatus.ProtocolError && webException.Response != null)
                 {
                     return (HttpWebResponse) webException.Response;
                 }
